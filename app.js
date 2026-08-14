@@ -6,7 +6,6 @@ class TranslatorApp {
     this.engine = new LocalTranslatorEngine();
     this.speech = new SpeechService();
     this.history = JSON.parse(localStorage.getItem('translator_history') || '[]');
-    this.favorites = JSON.parse(localStorage.getItem('translator_favorites') || '[]');
     this.debounceTimer = null;
     this.currentView = 'grid'; // grid, split, list
 
@@ -15,8 +14,8 @@ class TranslatorApp {
     this.renderSampleChips();
     this.renderHistory();
 
-    // Default initial translation
-    this.inputElement.value = "你好，很高興認識你";
+    // Default initial sentence with interactive terms
+    this.inputElement.value = "這份專案我們下週開始執行";
     this.handleTranslate();
   }
 
@@ -33,6 +32,8 @@ class TranslatorApp {
     this.copyAllBtn = document.getElementById('copy-all-btn');
     this.layoutBtns = document.querySelectorAll('.layout-btn');
     this.sampleChipsContainer = document.getElementById('sample-chips');
+    this.interactiveSection = document.getElementById('interactive-terms-section');
+    this.interactiveContainer = document.getElementById('interactive-terms-container');
   }
 
   bindEvents() {
@@ -128,11 +129,85 @@ class TranslatorApp {
     const text = this.inputElement.value.trim();
     const result = this.engine.translate(text);
 
+    this.renderInteractiveTerms(result.interactiveTerms);
     this.renderCards(result);
 
     if (text.length > 0) {
       this.saveHistory(text, result);
     }
+  }
+
+  renderInteractiveTerms(terms) {
+    if (!terms || terms.length === 0) {
+      this.interactiveSection.style.display = 'none';
+      return;
+    }
+
+    this.interactiveSection.style.display = 'block';
+    this.interactiveContainer.innerHTML = terms.map(item => {
+      const orig = item.originalWord;
+      const jaCandidates = item.candidates.ja || [];
+      const enCandidates = item.candidates.en || [];
+      const selectedJa = item.selected.ja || (jaCandidates[0] ? jaCandidates[0].term : '');
+      const selectedEn = item.selected.en || (enCandidates[0] ? enCandidates[0].term : '');
+
+      return `
+        <div class="interactive-term-card" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 0.75rem 1rem; width: 100%;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div style="font-weight: 700; font-size: 1rem; color: #818cf8; display: flex; align-items: center; gap: 0.5rem;">
+              <span>📌 關鍵詞彙：<strong style="color: #f8fafc; font-size: 1.1rem;">${orig}</strong></span>
+              <span class="brand-badge">${item.category}</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">
+            <!-- Japanese Candidates Choice -->
+            <div style="background: rgba(236, 72, 153, 0.08); border: 1px solid rgba(236, 72, 153, 0.2); border-radius: var(--radius-sm); padding: 0.6rem;">
+              <div style="font-size: 0.8rem; color: var(--accent-ja); font-weight: 600; margin-bottom: 0.4rem;">🇯🇵 日文譯詞與近義詞解說：</div>
+              ${jaCandidates.map(c => `
+                <div class="candidate-option ${selectedJa === c.term ? 'selected' : ''}" 
+                     data-orig="${orig}" data-lang="ja" data-term="${this.escapeHTML(c.term)}"
+                     style="padding: 0.4rem 0.6rem; border-radius: 6px; margin-bottom: 0.3rem; cursor: pointer; background: ${selectedJa === c.term ? 'rgba(236, 72, 153, 0.25)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${selectedJa === c.term ? 'var(--accent-ja)' : 'transparent'}; transition: all 0.2s;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 600; font-size: 0.9rem; color: #f8fafc;">${c.term}</span>
+                    <span style="font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 0.1rem 0.4rem; border-radius: 10px; color: #f472b6;">${c.domain}</span>
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">💡 ${c.explanation}</div>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- English Candidates Choice -->
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-sm); padding: 0.6rem;">
+              <div style="font-size: 0.8rem; color: var(--accent-en); font-weight: 600; margin-bottom: 0.4rem;">🇺🇸 英文譯詞與近義詞解說：</div>
+              ${enCandidates.map(c => `
+                <div class="candidate-option ${selectedEn === c.term ? 'selected' : ''}" 
+                     data-orig="${orig}" data-lang="en" data-term="${this.escapeHTML(c.term)}"
+                     style="padding: 0.4rem 0.6rem; border-radius: 6px; margin-bottom: 0.3rem; cursor: pointer; background: ${selectedEn === c.term ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${selectedEn === c.term ? 'var(--accent-en)' : 'transparent'}; transition: all 0.2s;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 600; font-size: 0.9rem; color: #f8fafc;">${c.term}</span>
+                    <span style="font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 0.1rem 0.4rem; border-radius: 10px; color: #34d399;">${c.domain}</span>
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">💡 ${c.explanation}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach click events for selecting term options
+    this.interactiveContainer.querySelectorAll('.candidate-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const orig = opt.dataset.orig;
+        const lang = opt.dataset.lang;
+        const term = opt.dataset.term;
+        this.engine.setTermOverride(orig, lang, term);
+        this.handleTranslate();
+        this.showToast(`已套用「${orig}」在 ${lang === 'ja' ? '日文' : '英文'} 的選詞：${term}`);
+      });
+    });
   }
 
   renderCards(res) {
@@ -168,7 +243,7 @@ class TranslatorApp {
             ${lang.guide ? `<div class="phonetic-guide">${lang.guide}</div>` : ''}
           </div>
           <div class="card-footer">
-            <span>本地即時翻譯</span>
+            <span>本地即時對照</span>
             <span>${translatedText.length} 字元</span>
           </div>
         </div>
@@ -196,7 +271,7 @@ class TranslatorApp {
   }
 
   renderSampleChips() {
-    const samples = ["你好", "謝謝", "請問多少錢", "這個很好吃", "人工智慧", "很高興認識你", "加油"];
+    const samples = ["這份專案我們下週開始執行", "你好", "謝謝", "工作", "買單", "我喜歡程式設計與語言學習"];
     this.sampleChipsContainer.innerHTML = samples.map(s => `<div class="chip" data-phrase="${s}">${s}</div>`).join('');
 
     this.sampleChipsContainer.querySelectorAll('.chip').forEach(chip => {
@@ -249,7 +324,7 @@ class TranslatorApp {
       bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(16, 185, 129, 0.9);
+      background: rgba(99, 102, 241, 0.95);
       color: white;
       padding: 0.6rem 1.2rem;
       border-radius: 20px;
@@ -260,7 +335,7 @@ class TranslatorApp {
     `;
     toast.innerText = msg;
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2000);
+    setTimeout(() => toast.remove(), 2200);
   }
 
   escapeHTML(str) {
