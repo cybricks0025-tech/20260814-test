@@ -159,9 +159,14 @@
                     <h2 class="text-2xl font-bold text-slate-900">我的報名與電子票券</h2>
                     <p class="text-sm text-slate-500">管理您已報名的活動，出示 QR Code 即可快速入場。</p>
                 </div>
-                <button onclick="switchTab('explore')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition">
-                    <i class="fa-solid fa-plus mr-1"></i> 瀏覽更多活動
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearAllRegistrations()" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i> 清空我的票券
+                    </button>
+                    <button onclick="switchTab('explore')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition">
+                        <i class="fa-solid fa-plus mr-1"></i> 瀏覽更多活動
+                    </button>
+                </div>
             </div>
 
             <!-- Tickets List -->
@@ -177,7 +182,10 @@
                     <h2 class="text-2xl font-bold text-slate-900">主辦方數據儀表板</h2>
                     <p class="text-sm text-slate-500">即時檢視報名成效、管理參加者名單與發布新活動。</p>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="clearAllRegistrations()" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-sm font-semibold rounded-xl shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-trash-can"></i> 清空報名資料
+                    </button>
                     <button onclick="exportAttendeesCSV()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-xl shadow-sm transition flex items-center gap-2">
                         <i class="fa-solid fa-file-csv"></i> 匯出參加者 CSV
                     </button>
@@ -1509,6 +1517,34 @@
             document.getElementById('newEventDate').value = isoString;
 
             showToast('已快速帶入新活動測試範本 ⚡', 'success');
+        }
+
+        // Clear All Registrations Helper
+        function clearAllRegistrations() {
+            if (registrations.length === 0) {
+                showToast('目前尚無任何報名紀錄可供清空', 'info');
+                return;
+            }
+
+            if (!confirm('⚠️ 確定要清空所有報名紀錄並將名額恢復預設狀態嗎？\n(注意：已設定的 Google 試算表 Webhook 網址將會保留)')) {
+                return;
+            }
+
+            // Clear registrations state & localStorage
+            registrations = [];
+            saveRegistrations();
+
+            // Reset events mock data to initial default state
+            eventsData = JSON.parse(JSON.stringify(defaultEvents));
+            saveEventsData();
+
+            // Re-render UI views
+            renderEvents();
+            renderMyTickets();
+            renderOrganizerStats();
+            updateMyTicketBadge();
+
+            showToast('已成功清空所有測試報名紀錄！🧹', 'success');
         }
     </script>
 </body>
