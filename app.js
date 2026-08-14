@@ -284,7 +284,11 @@ class TranslatorApp {
   }
 
   renderCards(res) {
-    const isAi = res.isAiPowered;
+    const engineTitle = res.engineType || '離線速查模式';
+    if (this.engine.lastError) {
+      this.showToast(`⚠️ 金鑰提醒: ${this.engine.lastError} (已切換至免費線上 NMT 引擎)`);
+    }
+
     const languages = [
       { id: 'ja', name: '日文 (Japanese)', flag: '🇯🇵', accentClass: 'card-ja', langCode: 'ja-JP', data: res.translations.ja, guide: res.translations.ja?.romaji ? `Romaji: ${res.translations.ja.romaji}` : '' },
       { id: 'kr', name: '韓文 (Korean)', flag: '🇰🇷', accentClass: 'card-kr', langCode: 'ko-KR', data: res.translations.kr, guide: res.translations.kr?.hangul_rr ? `Romanization: ${res.translations.kr.hangul_rr}` : '' },
@@ -317,7 +321,7 @@ class TranslatorApp {
             ${lang.guide ? `<div class="phonetic-guide">${lang.guide}</div>` : ''}
           </div>
           <div class="card-footer">
-            <span>${isAi ? '✨ Gemini AI 精確翻譯' : '⚡ 離線速查模式'}</span>
+            <span>${engineTitle}</span>
             <span>${translatedText.length} 字元</span>
           </div>
         </div>
