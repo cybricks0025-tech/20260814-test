@@ -14,8 +14,11 @@ class TranslatorApp {
     this.renderSampleChips();
     this.renderHistory();
 
+    // Check API Key status
+    this.updateApiKeyUI();
+
     // Default initial sentence with interactive terms
-    this.inputElement.value = "這份專案我們下週開始執行";
+    this.inputElement.value = "我今天胃很不舒服，想請假看醫生";
     this.handleTranslate();
   }
 
@@ -35,15 +38,21 @@ class TranslatorApp {
     this.interactiveSection = document.getElementById('interactive-terms-section');
     this.interactiveContainer = document.getElementById('interactive-terms-container');
     this.toneSelect = document.getElementById('tone-select');
+    this.apiKeyBtn = document.getElementById('api-key-btn');
+    this.apiModal = document.getElementById('api-modal');
+    this.closeApiModal = document.getElementById('close-api-modal');
+    this.apiKeyInput = document.getElementById('api-key-input');
+    this.saveApiKeyBtn = document.getElementById('save-api-key-btn');
+    this.clearApiKeyBtn = document.getElementById('clear-api-key-btn');
   }
 
   bindEvents() {
-    // Real-time input debounced translation (50ms)
+    // Real-time input debounced translation (300ms for AI / 50ms for local)
     this.inputElement.addEventListener('input', () => {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = setTimeout(() => {
         this.handleTranslate();
-      }, 50);
+      }, 400);
     });
 
     // Clear input
@@ -59,6 +68,42 @@ class TranslatorApp {
         this.engine.setTone(e.target.value);
         this.handleTranslate();
         this.showToast(`已切換翻譯場合至：${e.target.options[e.target.selectedIndex].text}`);
+      });
+    }
+
+    // API Key Modal toggle
+    if (this.apiKeyBtn) {
+      this.apiKeyBtn.addEventListener('click', () => {
+        this.apiKeyInput.value = this.engine.apiKey;
+        this.apiModal.classList.add('open');
+      });
+    }
+
+    if (this.closeApiModal) {
+      this.closeApiModal.addEventListener('click', () => {
+        this.apiModal.classList.remove('open');
+      });
+    }
+
+    if (this.saveApiKeyBtn) {
+      this.saveApiKeyBtn.addEventListener('click', () => {
+        const key = this.apiKeyInput.value;
+        this.engine.setApiKey(key);
+        this.updateApiKeyUI();
+        this.apiModal.classList.remove('open');
+        this.handleTranslate();
+        this.showToast(key ? '已啟用 Gemini AI 神經網路翻譯模式！' : '已恢復離線速查模式');
+      });
+    }
+
+    if (this.clearApiKeyBtn) {
+      this.clearApiKeyBtn.addEventListener('click', () => {
+        this.apiKeyInput.value = '';
+        this.engine.setApiKey('');
+        this.updateApiKeyUI();
+        this.apiModal.classList.remove('open');
+        this.handleTranslate();
+        this.showToast('已清除 API 金鑰');
       });
     }
 
@@ -109,17 +154,18 @@ class TranslatorApp {
     this.copyAllBtn.addEventListener('click', () => {
       const text = this.inputElement.value;
       if (!text) return;
-      const res = this.engine.translate(text);
-      const allText = `【原文字詞】: ${text}\n` +
-        `🇯🇵 日文: ${res.translations.ja.text} (${res.translations.ja.romaji})\n` +
-        `🇰🇷 韓文: ${res.translations.kr.text}\n` +
-        `🇺🇸 英文: ${res.translations.en.text}\n` +
-        `🇪🇸 西文: ${res.translations.es.text}\n` +
-        `🇫🇷 法文: ${res.translations.fr.text}\n` +
-        `🇩🇪 德文: ${res.translations.de.text}`;
+      this.engine.translateAsync(text).then(res => {
+        const allText = `【原文字詞】: ${text}\n` +
+          `🇯🇵 日文: ${res.translations.ja.text} (${res.translations.ja.romaji || ''})\n` +
+          `🇰🇷 韓文: ${res.translations.kr.text}\n` +
+          `🇺🇸 英文: ${res.translations.en.text}\n` +
+          `🇪🇸 西文: ${res.translations.es.text}\n` +
+          `🇫🇷 法文: ${res.translations.fr.text}\n` +
+          `🇩🇪 德文: ${res.translations.de.text}`;
 
-      navigator.clipboard.writeText(allText).then(() => {
-        this.showToast('已複製所有多國語言翻譯對照結果！');
+        navigator.clipboard.writeText(allText).then(() => {
+          this.showToast('已複製所有多國語言翻譯對照結果！');
+        });
       });
     });
 
@@ -135,10 +181,27 @@ class TranslatorApp {
     });
   }
 
-  handleTranslate() {
-    const text = this.inputElement.value.trim();
-    const result = this.engine.translate(text);
+  updateApiKeyUI() {
+    if (this.apiKeyBtn) {
+      if (this.engine.apiKey) {
+        this.apiKeyBtn.innerHTML = '✨ Gemini AI 已啟用';
+        this.apiKeyBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+      } else {
+        this.apiKeyBtn.innerHTML = '🔑 啟用 Gemini AI 模式';
+        this.apiKeyBtn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+      }
+    }
+  }
 
+  async handleTranslate() {
+    const text = this.inputElement.value.trim();
+    if (!text) {
+      this.interactiveSection.style.display = 'none';
+      this.renderCards(this.engine.emptyResult());
+      return;
+    }
+
+    const result = await this.engine.translateAsync(text);
     this.renderInteractiveTerms(result.interactiveTerms);
     this.renderCards(result);
 
@@ -156,30 +219,24 @@ class TranslatorApp {
     this.interactiveSection.style.display = 'block';
     this.interactiveContainer.innerHTML = terms.map(item => {
       const orig = item.originalWord;
-      const jaCandidates = item.candidates.ja || [];
-      const enCandidates = item.candidates.en || [];
-      const selectedJa = item.selected.ja || (jaCandidates[0] ? jaCandidates[0].raw : '');
-      const selectedEn = item.selected.en || (enCandidates[0] ? enCandidates[0].raw : '');
+      const jaCandidates = (item.candidates && item.candidates.ja) || [];
+      const enCandidates = (item.candidates && item.candidates.en) || [];
+      const selectedJa = (item.selected && item.selected.ja) || (jaCandidates[0] ? jaCandidates[0].raw : '');
+      const selectedEn = (item.selected && item.selected.en) || (enCandidates[0] ? enCandidates[0].raw : '');
 
       return `
         <div class="interactive-term-card" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 0.85rem 1.1rem; width: 100%; margin-bottom: 0.5rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
             <div style="font-weight: 700; font-size: 1rem; color: #818cf8; display: flex; align-items: center; gap: 0.5rem;">
               <span>📌 關鍵字詞：<strong style="color: #f8fafc; font-size: 1.1rem; text-decoration: underline var(--accent-ja);">${orig}</strong></span>
-              <span class="brand-badge">${item.category}</span>
+              <span class="brand-badge">${item.category || '領域對照'}</span>
             </div>
-            <button class="custom-term-btn btn-icon" data-orig="${orig}" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.5);">
-              ✏️ 自訂對照譯詞
-            </button>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">
             <!-- Japanese Candidates Choice -->
             <div style="background: rgba(236, 72, 153, 0.08); border: 1px solid rgba(236, 72, 153, 0.2); border-radius: var(--radius-sm); padding: 0.65rem;">
-              <div style="font-size: 0.8rem; color: var(--accent-ja); font-weight: 600; margin-bottom: 0.4rem; display: flex; justify-content: space-between;">
-                <span>🇯🇵 日文譯詞選單 (點擊切換)：</span>
-                <span style="color: var(--text-muted); font-weight: normal;">當前：${selectedJa || '預設'}</span>
-              </div>
+              <div style="font-size: 0.8rem; color: var(--accent-ja); font-weight: 600; margin-bottom: 0.4rem;">🇯🇵 日文譯詞選單與領域近義詞解說：</div>
               ${jaCandidates.map(c => `
                 <div class="candidate-option ${selectedJa === c.raw ? 'selected' : ''}" 
                      data-orig="${orig}" data-lang="ja" data-term="${this.escapeHTML(c.raw)}"
@@ -195,10 +252,7 @@ class TranslatorApp {
 
             <!-- English Candidates Choice -->
             <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-sm); padding: 0.65rem;">
-              <div style="font-size: 0.8rem; color: var(--accent-en); font-weight: 600; margin-bottom: 0.4rem; display: flex; justify-content: space-between;">
-                <span>🇺🇸 英文譯詞選單 (點擊切換)：</span>
-                <span style="color: var(--text-muted); font-weight: normal;">當前：${selectedEn || '預設'}</span>
-              </div>
+              <div style="font-size: 0.8rem; color: var(--accent-en); font-weight: 600; margin-bottom: 0.4rem;">🇺🇸 英文譯詞選單與領域近義詞解說：</div>
               ${enCandidates.map(c => `
                 <div class="candidate-option ${selectedEn === c.raw ? 'selected' : ''}" 
                      data-orig="${orig}" data-lang="en" data-term="${this.escapeHTML(c.raw)}"
@@ -224,26 +278,13 @@ class TranslatorApp {
         const term = opt.dataset.term;
         this.engine.setTermOverride(orig, lang, term);
         this.handleTranslate();
-        this.showToast(`已切換「${orig}」的 ${lang === 'ja' ? '日文' : '英文'} 譯詞為：${term}`);
-      });
-    });
-
-    // Custom term input handler
-    this.interactiveContainer.querySelectorAll('.custom-term-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const orig = btn.dataset.orig;
-        const lang = prompt(`請輸入「${orig}」自訂的目標譯詞（例如日文或英文對照）：`);
-        if (lang) {
-          this.engine.setTermOverride(orig, 'ja', lang);
-          this.engine.setTermOverride(orig, 'en', lang);
-          this.handleTranslate();
-          this.showToast(`已將「${orig}」之自訂譯詞設定為：${lang}`);
-        }
+        this.showToast(`已切換「${orig}」的譯詞：${term}`);
       });
     });
   }
 
   renderCards(res) {
+    const isAi = res.isAiPowered;
     const languages = [
       { id: 'ja', name: '日文 (Japanese)', flag: '🇯🇵', accentClass: 'card-ja', langCode: 'ja-JP', data: res.translations.ja, guide: res.translations.ja?.romaji ? `Romaji: ${res.translations.ja.romaji}` : '' },
       { id: 'kr', name: '韓文 (Korean)', flag: '🇰🇷', accentClass: 'card-kr', langCode: 'ko-KR', data: res.translations.kr, guide: res.translations.kr?.hangul_rr ? `Romanization: ${res.translations.kr.hangul_rr}` : '' },
@@ -276,7 +317,7 @@ class TranslatorApp {
             ${lang.guide ? `<div class="phonetic-guide">${lang.guide}</div>` : ''}
           </div>
           <div class="card-footer">
-            <span>本地即時對照</span>
+            <span>${isAi ? '✨ Gemini AI 精確翻譯' : '⚡ 離線速查模式'}</span>
             <span>${translatedText.length} 字元</span>
           </div>
         </div>
@@ -305,15 +346,11 @@ class TranslatorApp {
 
   renderSampleChips() {
     const samples = [
-      "這份專案我們下週開始執行",
-      "明日要舉辦研討會",
+      "我今天胃很不舒服，想請假看醫生",
       "我們今天下午要和日本客戶開會",
-      "請問附近的捷運站在哪裡",
-      "這台電腦效能很好",
-      "請協助確認這份簡報",
-      "工作",
-      "買單",
-      "你好"
+      "這家咖啡廳的氛圍非常適合閱讀與工作",
+      "請問這附近的捷運站在哪裡？",
+      "這份專案我們下週開始執行"
     ];
     this.sampleChipsContainer.innerHTML = samples.map(s => `<div class="chip" data-phrase="${s}">${s}</div>`).join('');
 
@@ -329,8 +366,8 @@ class TranslatorApp {
     if (this.history.length > 0 && this.history[0].text === text) return;
     this.history.unshift({
       text,
-      ja: result.translations.ja.text,
-      en: result.translations.en.text,
+      ja: result.translations.ja?.text || '',
+      en: result.translations.en?.text || '',
       timestamp: new Date().toLocaleTimeString()
     });
     if (this.history.length > 30) this.history.pop();

@@ -23,6 +23,9 @@
       <span class="brand-badge">無 API 模式</span>
     </div>
     <div class="nav-actions">
+      <button id="api-key-btn" class="btn-icon btn-primary" title="設定 Gemini AI API 金鑰">
+        🔑 Gemini AI 模式
+      </button>
       <a href="index.html" class="btn-icon" style="text-decoration: none;" title="返回 ETF 全面解析網頁">
         📊 ETF 分析網頁
       </a>
@@ -134,9 +137,40 @@
     </div>
   </aside>
 
+  <!-- API Key Setting Modal -->
+  <div id="api-modal" class="drawer" style="right: -100%; width: 420px; z-index: 300;">
+    <div class="drawer-header">
+      <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; color: #818cf8;">
+        🔑 Gemini AI API 金鑰設定
+      </h3>
+      <button id="close-api-modal" class="btn-icon">✕</button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 1rem; color: var(--text-main);">
+      <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+        填入免費的 <strong>Google Gemini API Key</strong> 後，系統將解鎖任意長句全功能神經翻譯、自動專有名詞擷取與近義詞解說！
+      </p>
+      <div>
+        <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.4rem;">Gemini API Key：</label>
+        <input id="api-key-input" type="password" placeholder="請貼上 AIzaSy..." style="width: 100%; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--card-border); background: rgba(15, 23, 42, 0.8); color: white; outline: none; font-size: 0.9rem;">
+      </div>
+      <div style="font-size: 0.75rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.1); padding: 0.6rem; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.3);">
+        💡 金鑰儲存在您的本機瀏覽器 (LocalStorage) 中，絕不上傳任何第三方伺服器。<br>
+        可至 <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #60a5fa; text-decoration: underline;">Google AI Studio</a> 免費申請 API Key。
+      </div>
+      <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+        <button id="save-api-key-btn" class="btn-icon btn-primary" style="flex: 1; justify-content: center;">
+          💾 儲存並啟用 AI 模式
+        </button>
+        <button id="clear-api-key-btn" class="btn-icon" style="flex: 0.6; justify-content: center;">
+          清除金鑰
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer -->
   <footer>
-    <p>⚡ 100% 本地端瀏覽器即時運算翻譯器 | 零 API Key 依賴 | 支援語音輸入與 TTS 發音朗讀 | <a href="index.html" style="color: #818cf8; text-decoration: underline;">返回 ETF 解析網頁</a></p>
+    <p>⚡ 支援 Gemini AI 智慧神經翻譯與本地速查 | 零外洩隱私保護 | 支援語音輸入與 TTS 發音朗讀 | <a href="index.html" style="color: #818cf8; text-decoration: underline;">返回 ETF 解析網頁</a></p>
   </footer>
 
   <!-- App Script -->
