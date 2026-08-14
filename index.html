@@ -183,6 +183,9 @@
                     <p class="text-sm text-slate-500">即時檢視報名成效、管理參加者名單與發布新活動。</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
+                    <button onclick="openMyGoogleSheet()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> 開啟 Google 試算表
+                    </button>
                     <button onclick="clearAllRegistrations()" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-sm font-semibold rounded-xl shadow-sm transition flex items-center gap-2">
                         <i class="fa-solid fa-trash-can"></i> 清空報名資料
                     </button>
@@ -251,13 +254,27 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row gap-2 pt-1">
-                    <input type="url" id="gsWebhookInput" placeholder="請貼上您的 Google Apps Script Webhook URL (https://script.google.com/macros/s/.../exec)" 
-                        class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                    <button type="button" onclick="saveGoogleSheetUrl()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-floppy-disk"></i> 儲存網址
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">1. Webhook 寫入網址 (Apps Script Webhook URL)</label>
+                        <input type="url" id="gsWebhookInput" placeholder="https://script.google.com/macros/s/.../exec" 
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">2. 試算表開啟瀏覽網址 (Google Sheet URL)</label>
+                        <input type="url" id="gsViewUrlInput" placeholder="https://docs.google.com/spreadsheets/d/.../edit" 
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2 pt-1">
+                    <button type="button" onclick="saveGoogleSheetUrls()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> 儲存網址設定
                     </button>
-                    <button type="button" onclick="testGoogleSheetSync()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                    <button type="button" onclick="openMyGoogleSheet()" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-semibold text-xs rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 📊 直接開啟我的 Google 試算表
+                    </button>
+                    <button type="button" onclick="testGoogleSheetSync()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow transition flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-vial"></i> 🧪 測試連線寫入
                     </button>
                 </div>
@@ -1353,32 +1370,63 @@
             }, 3500);
         }
         // Google Sheets Integration Functions
-        function saveGoogleSheetUrl() {
-            const urlInput = document.getElementById('gsWebhookInput');
-            let url = urlInput ? urlInput.value.trim() : '';
-            if (url) {
-                if (!url.startsWith('https://script.google.com/')) {
+        function saveGoogleSheetUrls() {
+            const webhookInput = document.getElementById('gsWebhookInput');
+            const viewUrlInput = document.getElementById('gsViewUrlInput');
+
+            let webhookUrl = webhookInput ? webhookInput.value.trim() : '';
+            let viewUrl = viewUrlInput ? viewUrlInput.value.trim() : '';
+
+            if (webhookUrl) {
+                if (!webhookUrl.startsWith('https://script.google.com/')) {
                     showToast('請輸入有效的 Google Apps Script Webhook 網址', 'info');
                     return;
                 }
-                if (url.endsWith('/dev')) {
-                    url = url.substring(0, url.length - 4) + '/exec';
-                    if (urlInput) urlInput.value = url;
+                if (webhookUrl.endsWith('/dev')) {
+                    webhookUrl = webhookUrl.substring(0, webhookUrl.length - 4) + '/exec';
+                    if (webhookInput) webhookInput.value = webhookUrl;
                     showToast('已自動將 /dev 測試網址修正為 /exec 正式網址！💡', 'info');
                 }
             }
-            localStorage.setItem('eventpro_google_sheet_url', url);
+
+            localStorage.setItem('eventpro_google_sheet_url', webhookUrl);
+            localStorage.setItem('eventpro_google_sheet_view_url', viewUrl);
+
             updateGsSyncStatus();
-            showToast(url ? 'Google 試算表 Webhook 已成功設定！' : '已清除 Google 試算表連結', 'success');
+            showToast('Google 試算表網址設定已成功儲存！', 'success');
+        }
+
+        function saveGoogleSheetUrl() {
+            saveGoogleSheetUrls();
+        }
+
+        function openMyGoogleSheet() {
+            const savedViewUrl = localStorage.getItem('eventpro_google_sheet_view_url') || '';
+            const inputViewUrl = document.getElementById('gsViewUrlInput') ? document.getElementById('gsViewUrlInput').value.trim() : '';
+            const viewUrl = inputViewUrl || savedViewUrl;
+
+            if (viewUrl) {
+                window.open(viewUrl, '_blank');
+            } else {
+                showToast('請先在主辦後台設定您的 Google 試算表開啟網址 (docs.google.com/spreadsheets...)', 'info');
+                const input = document.getElementById('gsViewUrlInput');
+                if (input) input.focus();
+            }
         }
 
         function updateGsSyncStatus() {
-            const savedUrl = localStorage.getItem('eventpro_google_sheet_url') || '';
-            const input = document.getElementById('gsWebhookInput');
+            const savedWebhookUrl = localStorage.getItem('eventpro_google_sheet_url') || '';
+            const savedViewUrl = localStorage.getItem('eventpro_google_sheet_view_url') || '';
+
+            const webhookInput = document.getElementById('gsWebhookInput');
+            const viewUrlInput = document.getElementById('gsViewUrlInput');
             const badge = document.getElementById('gsSyncBadge');
-            if (input && document.activeElement !== input) input.value = savedUrl;
+
+            if (webhookInput && document.activeElement !== webhookInput) webhookInput.value = savedWebhookUrl;
+            if (viewUrlInput && document.activeElement !== viewUrlInput) viewUrlInput.value = savedViewUrl;
+
             if (badge) {
-                if (savedUrl) {
+                if (savedWebhookUrl) {
                     badge.className = "px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center gap-1.5 self-start sm:self-auto";
                     badge.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500"></i> 已連線 Google 試算表';
                 } else {
