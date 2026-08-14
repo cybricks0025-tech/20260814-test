@@ -246,8 +246,11 @@
                 <div class="flex flex-col sm:flex-row gap-2 pt-1">
                     <input type="url" id="gsWebhookInput" placeholder="請貼上您的 Google Apps Script Webhook URL (https://script.google.com/macros/s/.../exec)" 
                         class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                    <button type="button" onclick="saveGoogleSheetUrl()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-floppy-disk"></i> 儲存 Webhook 網址
+                    <button type="button" onclick="saveGoogleSheetUrl()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> 儲存網址
+                    </button>
+                    <button type="button" onclick="testGoogleSheetSync()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-vial"></i> 🧪 測試連線寫入
                     </button>
                 </div>
             </div>
@@ -1059,7 +1062,7 @@
                 fetch(webhookUrl, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(registrationRecord)
                 }).then(() => {
                     showToast('資料已即時同步至 Google 試算表！📊', 'success');
@@ -1368,6 +1371,51 @@
                     badge.innerHTML = '<i class="fa-solid fa-circle-minus text-slate-400"></i> 未連線';
                 }
             }
+        }
+
+        function testGoogleSheetSync() {
+            const savedUrl = localStorage.getItem('eventpro_google_sheet_url') || '';
+            const inputUrl = document.getElementById('gsWebhookInput') ? document.getElementById('gsWebhookInput').value.trim() : '';
+            const url = inputUrl || savedUrl;
+
+            if (!url) {
+                showToast('請先貼上並儲存 Google Apps Script Webhook 網址', 'info');
+                return;
+            }
+
+            if (!url.startsWith('https://script.google.com/')) {
+                showToast('無效的 Webhook 網址，必須以 https://script.google.com/ 開頭', 'info');
+                return;
+            }
+
+            const testRecord = {
+                ticketCode: 'EP-TEST' + Math.floor(Math.random() * 899 + 100),
+                createdAt: new Date().toLocaleString('zh-TW'),
+                name: '連線測試員',
+                email: 'test_sync@example.com',
+                phone: '0900-000-000',
+                company: 'EventPro 系統測試',
+                eventTitle: 'Google 試算表連線測試',
+                ticketTypeName: '測試門票',
+                quantity: 1,
+                amountPaid: 0,
+                diet: '葷食',
+                shirt: 'M',
+                status: '連線測試成功'
+            };
+
+            showToast('正在發送測試資料至 Google 試算表...', 'info');
+
+            fetch(url, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(testRecord)
+            }).then(() => {
+                showToast('測試資料已發送！請檢查您的 Google 試算表是否有新增一行 📊', 'success');
+            }).catch(err => {
+                showToast('發送失敗：' + err.toString(), 'info');
+            });
         }
 
         // Quick Autofill Test Data Helpers
