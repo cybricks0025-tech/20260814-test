@@ -1347,10 +1347,17 @@
         // Google Sheets Integration Functions
         function saveGoogleSheetUrl() {
             const urlInput = document.getElementById('gsWebhookInput');
-            const url = urlInput ? urlInput.value.trim() : '';
-            if (url && !url.startsWith('https://script.google.com/')) {
-                showToast('請輸入有效的 Google Apps Script Webhook 網址', 'info');
-                return;
+            let url = urlInput ? urlInput.value.trim() : '';
+            if (url) {
+                if (!url.startsWith('https://script.google.com/')) {
+                    showToast('請輸入有效的 Google Apps Script Webhook 網址', 'info');
+                    return;
+                }
+                if (url.endsWith('/dev')) {
+                    url = url.substring(0, url.length - 4) + '/exec';
+                    if (urlInput) urlInput.value = url;
+                    showToast('已自動將 /dev 測試網址修正為 /exec 正式網址！💡', 'info');
+                }
             }
             localStorage.setItem('eventpro_google_sheet_url', url);
             updateGsSyncStatus();
@@ -1376,7 +1383,7 @@
         function testGoogleSheetSync() {
             const savedUrl = localStorage.getItem('eventpro_google_sheet_url') || '';
             const inputUrl = document.getElementById('gsWebhookInput') ? document.getElementById('gsWebhookInput').value.trim() : '';
-            const url = inputUrl || savedUrl;
+            let url = inputUrl || savedUrl;
 
             if (!url) {
                 showToast('請先貼上並儲存 Google Apps Script Webhook 網址', 'info');
@@ -1386,6 +1393,14 @@
             if (!url.startsWith('https://script.google.com/')) {
                 showToast('無效的 Webhook 網址，必須以 https://script.google.com/ 開頭', 'info');
                 return;
+            }
+
+            if (url.endsWith('/dev')) {
+                url = url.substring(0, url.length - 4) + '/exec';
+                const input = document.getElementById('gsWebhookInput');
+                if (input) input.value = url;
+                localStorage.setItem('eventpro_google_sheet_url', url);
+                showToast('已自動將 /dev 測試網址修正為 /exec 正式網址！💡', 'info');
             }
 
             const testRecord = {
