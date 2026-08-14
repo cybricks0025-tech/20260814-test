@@ -367,7 +367,12 @@
 
                 <!-- STEP 2: Participant Information -->
                 <div id="step2Content" class="hidden space-y-4">
-                    <h4 class="font-bold text-slate-900 text-base">基本聯絡資料與細節</h4>
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-slate-900 text-base">基本聯絡資料與細節</h4>
+                        <button type="button" onclick="fillTestData()" class="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-bolt text-amber-500"></i> ⚡ 快速帶入測試資料
+                        </button>
+                    </div>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -546,7 +551,12 @@
     <div id="createEventModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden my-8 p-6">
             <div class="flex justify-between items-center pb-4 border-b border-slate-100">
-                <h3 class="font-bold text-lg text-slate-900">發布新活動</h3>
+                <div class="flex items-center gap-3">
+                    <h3 class="font-bold text-lg text-slate-900">發布新活動</h3>
+                    <button type="button" onclick="fillCreateEventTestData()" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-semibold rounded-lg transition flex items-center gap-1">
+                        <i class="fa-solid fa-bolt text-amber-500"></i> ⚡ 帶入測試資料
+                    </button>
+                </div>
                 <button onclick="closeCreateEventModal()" class="text-slate-400 hover:text-slate-600">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
@@ -1358,6 +1368,84 @@
                     badge.innerHTML = '<i class="fa-solid fa-circle-minus text-slate-400"></i> 未連線';
                 }
             }
+        }
+
+        // Quick Autofill Test Data Helpers
+        function fillTestData() {
+            const names = ['王小明', '陳大為', '林雅婷', '張家豪', '李怡君'];
+            const companies = ['前瞻科技有限公司', '數據創新研發中心', '數位設計工作室', '雲端架構實驗室', '星火文創團隊'];
+            const diets = ['葷食', '蛋奶素', '全素', '不需用餐'];
+            const shirts = ['S', 'M', 'L', 'XL', '2XL'];
+            const notes = [
+                '測試報名，希望獲取第一排保留席位。',
+                '需要電子發票統編與研習證明。',
+                '報名測試，現場攜帶筆記型電腦。',
+                '無特別需求，期待活動開講！'
+            ];
+
+            const randomName = names[Math.floor(Math.random() * names.length)];
+            const randomCompany = companies[Math.floor(Math.random() * companies.length)];
+            const randomDiet = diets[Math.floor(Math.random() * diets.length)];
+            const randomShirt = shirts[Math.floor(Math.random() * shirts.length)];
+            const randomNote = notes[Math.floor(Math.random() * notes.length)];
+            const randomPhone = '09' + Math.floor(10000000 + Math.random() * 90000000);
+            const randomEmail = 'test_' + Math.random().toString(36).substring(2, 7) + '@example.com';
+
+            document.getElementById('custName').value = randomName;
+            document.getElementById('custEmail').value = randomEmail;
+            document.getElementById('custPhone').value = randomPhone;
+            document.getElementById('custCompany').value = randomCompany;
+            document.getElementById('custDiet').value = randomDiet;
+            document.getElementById('custShirt').value = randomShirt;
+            document.getElementById('custNotes').value = randomNote;
+
+            showToast('已快速帶入測試報名資料 ⚡', 'success');
+        }
+
+        function fillCreateEventTestData() {
+            const sampleEvents = [
+                {
+                    title: '2026 前端與 AI 協同開發實戰論壇',
+                    category: 'Tech',
+                    price: 1500,
+                    capacity: 150,
+                    location: '台北國際會議中心 4F 大會堂',
+                    desc: '邀請 6 位頂尖業界講師分享生成式 AI 輔助開發、自動化測試與 CI/CD 部署實務體驗。'
+                },
+                {
+                    title: '數位產品 Design System 實務工作坊',
+                    category: 'Design',
+                    price: 1200,
+                    capacity: 60,
+                    location: '松山文創園區 3號展廳',
+                    desc: '手把手建立企業級 UI Component Library 與 Figma Token 自動化流程。'
+                },
+                {
+                    title: '2026 酷夏獨立音樂跨界派對',
+                    category: 'Music',
+                    price: 0,
+                    capacity: 250,
+                    location: '華山 1914 文創園區 戶外草皮',
+                    desc: '結合獨立樂團與數位互動光影藝術的免費夏季音樂體驗聚會。'
+                }
+            ];
+
+            const sample = sampleEvents[Math.floor(Math.random() * sampleEvents.length)];
+
+            document.getElementById('newEventTitle').value = sample.title;
+            document.getElementById('newEventCategory').value = sample.category;
+            document.getElementById('newEventPrice').value = sample.price;
+            document.getElementById('newEventCapacity').value = sample.capacity;
+            document.getElementById('newEventLocation').value = sample.location;
+            document.getElementById('newEventDesc').value = sample.desc;
+
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + 14);
+            futureDate.setHours(10, 0, 0, 0);
+            const isoString = futureDate.toISOString().slice(0, 16);
+            document.getElementById('newEventDate').value = isoString;
+
+            showToast('已快速帶入新活動測試範本 ⚡', 'success');
         }
     </script>
 </body>
