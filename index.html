@@ -53,6 +53,14 @@
             background: #cbd5e1;
             border-radius: 3px;
         }
+        @keyframes modalShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-12px); }
+            40%, 80% { transform: translateX(12px); }
+        }
+        .shake-modal {
+            animation: modalShake 0.4s ease-in-out;
+        }
         @media print {
             body * {
                 visibility: hidden;
@@ -104,8 +112,8 @@
         </div>
     </header>
 
-    <!-- Toast Notification Container -->
-    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+    <!-- Toast Notification Container (Top Center High Priority Layer) -->
+    <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none w-full max-w-md px-4"></div>
 
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -346,7 +354,23 @@
             </div>
 
             <!-- Modal Form Content -->
-            <form id="registrationForm" onsubmit="handleFormSubmit(event)" class="p-6">
+            <form id="registrationForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto max-h-[75vh]">
+                <!-- High Priority In-Modal Error Alert Banner -->
+                <div id="modalErrorAlert" class="hidden mb-6 p-4 rounded-2xl bg-rose-600 text-white shadow-xl flex items-center justify-between border-2 border-rose-700 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-300"></i>
+                        </div>
+                        <div>
+                            <div class="font-extrabold text-sm sm:text-base" id="modalErrorAlertTitle">報名阻擋通知</div>
+                            <div class="text-xs text-rose-100 mt-0.5" id="modalErrorAlertMsg">詳細說明訊息...</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="hideModalError()" class="text-rose-200 hover:text-white text-lg px-2">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
                 <!-- STEP 1: Select Ticket -->
                 <div id="step1Content" class="space-y-5">
                     <h4 class="font-bold text-slate-900 text-base">請選擇票種與數量</h4>
@@ -898,6 +922,7 @@
             // Reset form state
             discountRate = 1.0;
             ticketQuantity = 1;
+            hideModalError();
             document.getElementById('ticketQuantityDisplay').innerText = ticketQuantity;
             document.getElementById('promoCodeInput').value = '';
             document.getElementById('promoMessage').classList.add('hidden');
@@ -1051,7 +1076,8 @@
             );
 
             if (isDuplicate) {
-                showToast(`🚫 報名失敗：姓名「${name}」已重複報名！`, 'info');
+                showModalError('🚫 重複報名阻擋', `姓名「${name}」已報名過此活動！請勿重複送出。`);
+                showToast(`🚫 報名失敗：姓名「${name}」已重複報名！`, 'error');
                 return;
             }
 
@@ -1363,22 +1389,53 @@
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             
-            const bgClass = type === 'success' ? 'bg-slate-900 text-white' : 'bg-brand-600 text-white';
-            const icon = type === 'success' ? 'fa-circle-check text-emerald-400' : 'fa-circle-info text-blue-300';
+            let bgClass = 'bg-slate-900 text-white';
+            let icon = 'fa-circle-check text-emerald-400';
 
-            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl ${bgClass} text-sm font-medium transition-all transform translate-y-5 opacity-0 duration-300`;
-            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i> <span>${message}</span>`;
+            if (type === 'error' || type === 'info') {
+                bgClass = 'bg-rose-600 text-white shadow-rose-900/30';
+                icon = 'fa-triangle-exclamation text-amber-300';
+            }
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl ${bgClass} text-sm font-semibold transition-all transform -translate-y-5 opacity-0 duration-300 border border-white/20`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-xl shrink-0"></i> <span class="flex-1">${message}</span>`;
 
             container.appendChild(toast);
 
             setTimeout(() => {
-                toast.classList.remove('translate-y-5', 'opacity-0');
+                toast.classList.remove('-translate-y-5', 'opacity-0');
             }, 10);
 
             setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
+                toast.classList.add('opacity-0', '-translate-y-2');
                 setTimeout(() => toast.remove(), 300);
-            }, 3500);
+            }, 4000);
+        }
+
+        // Modal High Visibility Error Alert Helpers
+        function showModalError(title, msg) {
+            const alertBox = document.getElementById('modalErrorAlert');
+            const titleEl = document.getElementById('modalErrorAlertTitle');
+            const msgEl = document.getElementById('modalErrorAlertMsg');
+            const modalCard = document.querySelector('#registrationModal > div');
+
+            if (titleEl) titleEl.innerText = title;
+            if (msgEl) msgEl.innerText = msg;
+            if (alertBox) alertBox.classList.remove('hidden');
+
+            if (modalCard) {
+                modalCard.classList.remove('shake-modal');
+                void modalCard.offsetWidth; // trigger reflow
+                modalCard.classList.add('shake-modal');
+            }
+
+            const regForm = document.getElementById('registrationForm');
+            if (regForm) regForm.scrollTop = 0;
+        }
+
+        function hideModalError() {
+            const alertBox = document.getElementById('modalErrorAlert');
+            if (alertBox) alertBox.classList.add('hidden');
         }
         // Google Sheets Integration Functions
         function saveGoogleSheetUrls() {
