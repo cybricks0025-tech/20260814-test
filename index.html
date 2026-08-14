@@ -1526,7 +1526,7 @@
                 return;
             }
 
-            if (!confirm('⚠️ 確定要清空所有報名紀錄並將名額恢復預設狀態嗎？\n(注意：已設定的 Google 試算表 Webhook 網址將會保留)')) {
+            if (!confirm('⚠️ 確定要清空所有線上報名紀錄，並連同 Google 試算表內容一起清空嗎？')) {
                 return;
             }
 
@@ -1544,7 +1544,22 @@
             renderOrganizerStats();
             updateMyTicketBadge();
 
-            showToast('已成功清空所有測試報名紀錄！🧹', 'success');
+            // Sync Clear command to Google Sheets if Webhook URL is configured
+            const webhookUrl = localStorage.getItem('eventpro_google_sheet_url');
+            if (webhookUrl) {
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'clear' })
+                }).then(() => {
+                    showToast('已成功同步清空網頁與 Google 試算表內容！🧹', 'success');
+                }).catch(err => {
+                    console.error('Failed to sync clear to Google Sheets:', err);
+                });
+            } else {
+                showToast('已成功清空所有測試報名紀錄！🧹', 'success');
+            }
         }
     </script>
 </body>
