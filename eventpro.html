@@ -419,11 +419,16 @@
 
                 <!-- STEP 2: Participant Information -->
                 <div id="step2Content" class="hidden space-y-4">
-                    <div class="flex justify-between items-center">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <h4 class="font-bold text-slate-900 text-base">基本聯絡資料與細節</h4>
-                        <button type="button" onclick="fillTestData()" class="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-bolt text-amber-500"></i> ⚡ 快速帶入測試資料
-                        </button>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button type="button" onclick="fillDuplicateTestData()" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-xl transition flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-copy text-rose-500"></i> ⚡ 帶入固定姓名(測試重複: 王小明)
+                            </button>
+                            <button type="button" onclick="fillTestData()" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-semibold rounded-xl transition flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-bolt text-amber-500"></i> ⚡ 隨機資料
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1069,15 +1074,15 @@
             const diet = document.getElementById('custDiet').value;
             const shirt = document.getElementById('custShirt').value;
 
-            // 驗證是否同活動重複報名 (姓名不可重複)
-            const isDuplicate = registrations.some(r => 
-                r.eventId === selectedEvent.id && 
-                r.name.trim().toLowerCase() === name.toLowerCase()
+            // 驗證姓名是否重複 (不區分大小寫、去除前後空格)
+            const targetName = name.trim().toLowerCase();
+            const duplicateRecord = registrations.find(r => 
+                r.name.trim().toLowerCase() === targetName
             );
 
-            if (isDuplicate) {
-                showModalError('🚫 重複報名阻擋', `姓名「${name}」已報名過此活動！請勿重複送出。`);
-                showToast(`🚫 報名失敗：姓名「${name}」已重複報名！`, 'error');
+            if (duplicateRecord) {
+                showModalError('🚫 重複報名阻擋通知', `報名失敗：姓名「${name}」已存在於系統報名紀錄中（單號: ${duplicateRecord.ticketCode}），不可重複報名！`);
+                showToast(`🚫 報名失敗：姓名「${name}」已被使用！`, 'error');
                 return;
             }
 
@@ -1558,6 +1563,18 @@
         }
 
         // Quick Autofill Test Data Helpers
+        function fillDuplicateTestData() {
+            document.getElementById('custName').value = '王小明';
+            document.getElementById('custEmail').value = 'wang.xiaoming@example.com';
+            document.getElementById('custPhone').value = '0912-345-678';
+            document.getElementById('custCompany').value = '測試重複報名股份有限公司';
+            document.getElementById('custDiet').value = '葷食';
+            document.getElementById('custShirt').value = 'M';
+            document.getElementById('custNotes').value = '此為固定測試姓名「王小明」，用於測試重複報名阻擋。';
+
+            showToast('已帶入固定測試姓名「王小明」⚡', 'info');
+        }
+
         function fillTestData() {
             const names = ['王小明', '陳大為', '林雅婷', '張家豪', '李怡君'];
             const companies = ['前瞻科技有限公司', '數據創新研發中心', '數位設計工作室', '雲端架構實驗室', '星火文創團隊'];
