@@ -304,7 +304,17 @@ class TranslatorApp {
   }
 
   renderSampleChips() {
-    const samples = ["這份專案我們下週開始執行", "明天要舉辦研討會", "這台電腦效能很好", "請協助確認這份合約", "工作", "買單", "你好"];
+    const samples = [
+      "這份專案我們下週開始執行",
+      "明日要舉辦研討會",
+      "我們今天下午要和日本客戶開會",
+      "請問附近的捷運站在哪裡",
+      "這台電腦效能很好",
+      "請協助確認這份簡報",
+      "工作",
+      "買單",
+      "你好"
+    ];
     this.sampleChipsContainer.innerHTML = samples.map(s => `<div class="chip" data-phrase="${s}">${s}</div>`).join('');
 
     this.sampleChipsContainer.querySelectorAll('.chip').forEach(chip => {

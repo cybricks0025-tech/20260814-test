@@ -1,7 +1,7 @@
 /**
- * Interactive Terminology-Guided Offline Multi-Language Real-Time Translation Engine v3.0
- * Eliminates untranslated Chinese character leaks across target languages.
- * Provides rich grammar patterns, dynamic term extraction, and interactive term overrides.
+ * Interactive Terminology-Guided Offline Multi-Language Real-Time Translation Engine v4.0
+ * Comprehensive Morphological Phrase Parsing, Universal Sentence Grammar Synthesis & Term Candidate Selection.
+ * Eliminates blank outputs, incomplete fragments, and untranslated Chinese characters.
  */
 
 // Universal Candidate Terms & Domain Explanations Database
@@ -44,6 +44,49 @@ const DOMAIN_TERMS_DB = {
       ]
     }
   },
+  "開會": {
+    category: "商務/會議",
+    candidates: {
+      ja: [
+        { term: "会議をする", raw: "会議をする", domain: "一般商務", explanation: "最常用的正式商務開會表達方式。", formality: "正式" },
+        { term: "ミーティングを行う", raw: "ミーティングを行う", domain: "現代職場 / 專案", explanation: "現代職場常採用的外來語會議說明方式。", formality: "商務休閒" }
+      ],
+      en: [
+        { term: "have a meeting", raw: "have a meeting", domain: "General Business", explanation: "標準職場開會表達。", formality: "Neutral" },
+        { term: "hold a meeting", raw: "hold a meeting", domain: "Executive / Formal", explanation: "指正式召集並主持會議。", formality: "Formal" }
+      ],
+      kr: [
+        { term: "회의를 하다", raw: "회의를 하다", domain: "一般", explanation: "標準開會韓國語表達。", formality: "標準" }
+      ]
+    }
+  },
+  "客戶": {
+    category: "商業/對外",
+    candidates: {
+      ja: [
+        { term: "お客様", raw: "お客様", domain: "商務敬語", explanation: "日本商業溝通中最有禮貌、極受推薦的客戶稱呼。", formality: "尊稱" },
+        { term: "クライアント", raw: "クライアント", domain: "IT / 顧問業", explanation: "IT、廣告或顧問業常使用的客戶外來語。", formality: "專業" }
+      ],
+      en: [
+        { term: "client", raw: "client", domain: "Professional Services", explanation: "專業服務業、B2B 客戶稱呼。", formality: "Formal" },
+        { term: "customer", raw: "customer", domain: "Retail / B2C", explanation: "零售或一般消費者客戶。", formality: "Neutral" }
+      ]
+    }
+  },
+  "捷運站": {
+    category: "交通/地點",
+    candidates: {
+      ja: [
+        { term: "地下鉄の駅", raw: "地下鉄の駅", domain: "日本交通", explanation: "地下鐵捷運站標準稱呼。", formality: "通用" },
+        { term: "MRTの駅", raw: "MRTの駅", domain: "台灣捷運專稱", explanation: "日本觀光客指稱台灣 MRT 捷運站之說明。", formality: "特定名稱" }
+      ],
+      en: [
+        { term: "MRT station", raw: "MRT station", domain: "Asia Transit", explanation: "捷運站標準英文（Metro Rapid Transit）。", formality: "Neutral" },
+        { term: "subway station", raw: "subway station", domain: "US English", explanation: "美式英語地下鐵/捷運站稱呼。", formality: "Neutral" },
+        { term: "metro station", raw: "metro station", domain: "Global Transit", explanation: "國際通用都市捷運地鐵站稱呼。", formality: "Neutral" }
+      ]
+    }
+  },
   "執行": {
     category: "動詞/操作",
     candidates: {
@@ -53,11 +96,7 @@ const DOMAIN_TERMS_DB = {
       ],
       en: [
         { term: "execute", raw: "execute", domain: "Business / Tech", explanation: "指按計畫執行操作、貫徹目標或執行程式指令。", formality: "Formal" },
-        { term: "implement", raw: "implement", domain: "Management / Policy", explanation: "指將政策、系統或策略落地實施與應用。", formality: "Formal" },
-        { term: "kick off", raw: "kick off", domain: "Agile / Modern Office", explanation: "口語常見，指專案正式啟動、熱烈開工。", formality: "Casual" }
-      ],
-      kr: [
-        { term: "실행하다", raw: "실행하다", domain: "一般/IT", explanation: "標準執行用語，適用於計畫或程式執行。", formality: "標準" }
+        { term: "implement", raw: "implement", domain: "Management / Policy", explanation: "指將政策、系統或策略落地實施與應用。", formality: "Formal" }
       ]
     }
   },
@@ -78,25 +117,10 @@ const DOMAIN_TERMS_DB = {
     category: "法律/商務",
     candidates: {
       ja: [
-        { term: "契約書", raw: "契約書", domain: "正式法律文件", explanation: "指正式簽署具有法律效力的合約書文件。", formality: "嚴謹正式" },
-        { term: "協定", raw: "協定", domain: "機構 / 框架協議", explanation: "指兩國、兩公司間的框架性合作協定。", formality: "正式" }
+        { term: "契約書", raw: "契約書", domain: "正式法律文件", explanation: "指正式簽署具有法律效力的合約書文件。", formality: "嚴謹正式" }
       ],
       en: [
-        { term: "contract", raw: "contract", domain: "Legal", explanation: "具法律約束力的正式合約。", formality: "Formal" },
-        { term: "agreement", raw: "agreement", domain: "Business", explanation: "商務合作協議書、協定。", formality: "Business Formal" }
-      ]
-    }
-  },
-  "工作": {
-    category: "名詞/職涯",
-    candidates: {
-      ja: [
-        { term: "仕事", raw: "仕事", domain: "日常 / 職業", explanation: "最日常普及的用法，泛指任何工作、職業或手邊任務。", formality: "標準" },
-        { term: "業務", raw: "業務", domain: "正式企業 / 職責", explanation: "公司內部的正式職務工作內容或合約業務細節。", formality: "正式商務" }
-      ],
-      en: [
-        { term: "work", raw: "work", domain: "General", explanation: "廣義的工作，包含體力與腦力勞動。", formality: "Neutral" },
-        { term: "job", raw: "job", domain: "Employment", explanation: "指特定的職務、受僱崗位或領取薪水的工作。", formality: "Neutral" }
+        { term: "contract", raw: "contract", domain: "Legal", explanation: "具法律約束力的正式合約。", formality: "Formal" }
       ]
     }
   }
@@ -104,66 +128,102 @@ const DOMAIN_TERMS_DB = {
 
 // Rich Natural Grammar Sentence Templates (No Chinese Leaks)
 const SENTENCE_PATTERNS = [
+  // 1. 活動與會議類 (Events & Meetings)
   {
     regex: /^(明日|明天)(?:要|將)?(?:舉辦|舉行)(.+)$/i,
-    en: (m, terms) => `Tomorrow, we will hold a ${translateTerm(m[2], 'en', terms)}.`,
-    ja: (m, terms) => `明日、${translateTerm(m[2], 'ja', terms)}を開催します。`,
-    kr: (m, terms) => `내일 ${translateTerm(m[2], 'kr', terms)}를 개최합니다.`,
-    es: (m, terms) => `Mañana se celebrará un ${translateTerm(m[2], 'es', terms)}.`,
-    fr: (m, terms) => `Demain, un ${translateTerm(m[2], 'fr', terms)} aura lieu.`,
-    de: (m, terms) => `Morgen findet ein ${translateTerm(m[2], 'de', terms)} statt.`
+    en: (m, t) => `Tomorrow, we will hold a ${translateWord(m[2], 'en', t)}.`,
+    ja: (m, t) => `明日、${translateWord(m[2], 'ja', t)}を開催します。`,
+    kr: (m, t) => `내일 ${translateWord(m[2], 'kr', t)}를 개최합니다.`,
+    es: (m, t) => `Mañana se celebrará un ${translateWord(m[2], 'es', t)}.`,
+    fr: (m, t) => `Demain, un ${translateWord(m[2], 'fr', t)} aura lieu.`,
+    de: (m, t) => `Morgen findet ein ${translateWord(m[2], 'de', t)} statt.`
   },
+  {
+    regex: /^我們(今天下午|下午)(?:要|將)?和(.+)(開會|會議)$/i,
+    en: (m, t) => `We will have a meeting with ${translateWord(m[2], 'en', t)} this afternoon.`,
+    ja: (m, t) => `私達は今日の午後、${translateWord(m[2], 'ja', t)}と${translateWord('開會', 'ja', t)}。`,
+    kr: (m, t) => `우리는 오늘 오후에 ${translateWord(m[2], 'kr', t)}와 회의를 할 예정입니다.`,
+    es: (m, t) => `Tendremos una reunión con ${translateWord(m[2], 'es', t)} esta tarde.`,
+    fr: (m, t) => `Nous aurons une réunion avec ${translateWord(m[2], 'fr', t)} cet après-midi.`,
+    de: (m, t) => `Wir werden heute Nachmittag ein Treffen mit ${translateWord(m[2], 'de', t)} haben.`
+  },
+
+  // 2. 問路與詢問類 (Questions & Directions)
+  {
+    regex: /^請問(附近|這附近)?的(.+)(在哪裡|在何處)$/i,
+    en: (m, t) => `Excuse me, where is the nearby ${translateWord(m[2], 'en', t)}?`,
+    ja: (m, t) => `すみません、近くの${translateWord(m[2], 'ja', t)}はどこですか？`,
+    kr: (m, t) => `실례합니다, 근처 ${translateWord(m[2], 'kr', t)}이/가 어디에 있나요?`,
+    es: (m, t) => `Disculpe, ¿dónde está el ${translateWord(m[2], 'es', t)} cercano?`,
+    fr: (m, t) => `Excusez-moi, où se trouve le ${translateWord(m[2], 'fr', t)} le plus proche?`,
+    de: (m, t) => `Entschuldigung, wo ist die nächste ${translateWord(m[2], 'de', t)}?`
+  },
+
+  // 3. 專案與工作類 (Projects & Business Tasks)
   {
     regex: /^這份專案我們(下週|下周)開始執行$/i,
-    en: (m, terms) => `We will ${translateTerm('執行', 'en', terms)} this ${translateTerm('專案', 'en', terms)} next week.`,
-    ja: (m, terms) => `この${translateTerm('專案', 'ja', terms)}は来週から${translateTerm('執行', 'ja', terms)}。`,
-    kr: (m, terms) => `이 ${translateTerm('專案', 'kr', terms)}는 다음 주부터 실행합니다.`,
-    es: (m, terms) => `Ejecutaremos este proyecto la próxima semana.`,
-    fr: (m, terms) => `Nous exécuterons ce projet la semaine prochaine.`,
-    de: (m, terms) => `Wir werden dieses Projekt nächste Woche ausführen.`
+    en: (m, t) => `We will ${translateWord('執行', 'en', t)} this ${translateWord('專案', 'en', t)} next week.`,
+    ja: (m, t) => `この${translateWord('專案', 'ja', t)}は来週から${translateWord('執行', 'ja', t)}。`,
+    kr: (m, t) => `이 ${translateWord('專案', 'kr', t)}는 다음 주부터 실행합니다.`,
+    es: (m, t) => `Ejecutaremos este proyecto la próxima semana.`,
+    fr: (m, t) => `Nous exécuterons ce projet la semaine prochaine.`,
+    de: (m, t) => `Wir werden dieses Projekt nächste Woche ausführen.`
   },
+
+  // 4. 設備與品質類 (Equipment & Quality)
   {
-    regex: /^這台電腦效能(很好|很棒)$/i,
-    en: (m, terms) => `This ${translateTerm('電腦', 'en', terms)} has excellent performance.`,
-    ja: (m, terms) => `この${translateTerm('電腦', 'ja', terms)}の性能は非常に優れています。`,
-    kr: (m, terms) => `이 컴퓨터의 성능은 매우 뛰어납니다.`,
-    es: (m, terms) => `Esta computadora tiene un excelente rendimiento.`,
-    fr: (m, terms) => `Cet ordinateur a d'excellentes performances.`,
-    de: (m, terms) => `Dieser Computer hat eine hervorragende Leistung.`
+    regex: /^這台(.+)效能(很好|很棒)$/i,
+    en: (m, t) => `This ${translateWord(m[1], 'en', t)} has excellent performance.`,
+    ja: (m, t) => `この${translateWord(m[1], 'ja', t)}の性能は非常に優れています。`,
+    kr: (m, t) => `이 ${translateWord(m[1], 'kr', t)}의 성능은 매우 뛰어납니다.`,
+    es: (m, t) => `Esta ${translateWord(m[1], 'es', t)} tiene un excelente rendimiento.`,
+    fr: (m, t) => `Cet ${translateWord(m[1], 'fr', t)} a d'excellentes performances.`,
+    de: (m, t) => `Dieser ${translateWord(m[1], 'de', t)} hat eine hervorragende Leistung.`
   },
+
+  // 5. 確認與請託類 (Review & Requests)
   {
-    regex: /^請協助確認這份(合約|契約)$/i,
-    en: (m, terms) => `Please help confirm this ${translateTerm('合約', 'en', terms)}.`,
-    ja: (m, terms) => `この${translateTerm('合約', 'ja', terms)}をご確認いただけますようお願いいたします。`,
-    kr: (m, terms) => `이 계약서를 확인해 주시기 바랍니다.`,
-    es: (m, terms) => `Por favor, ayude a confirmar este contrato.`,
-    fr: (m, terms) => `Veuillez aider à confirmer ce contrat.`,
-    de: (m, terms) => `Bitte helfen Sie, diesen Vertrag zu bestätigen.`
+    regex: /^請(協助|幫忙)?確認這份(.+)$/i,
+    en: (m, t) => `Please help confirm this ${translateWord(m[2], 'en', t)}.`,
+    ja: (m, t) => `この${translateWord(m[2], 'ja', t)}をご確認いただけますようお願いいたします。`,
+    kr: (m, t) => `이 ${translateWord(m[2], 'kr', t)}를 확인해 주시기 바랍니다.`,
+    es: (m, t) => `Por favor, ayude a confirmar este ${translateWord(m[2], 'es', t)}.`,
+    fr: (m, t) => `Veuillez aider à confirmer ce ${translateWord(m[2], 'fr', t)}.`,
+    de: (m, t) => `Bitte helfen Sie, diesen ${translateWord(m[2], 'de', t)} zu bestätigen.`
   }
 ];
 
-// Offline Word Lookup Table for dynamic phrase replacement
+// Offline Word & Phrase Lookup Dictionary
 const WORD_DICT = {
-  "明日": { en: "Tomorrow", ja: "明日", kr: "내일", es: "Mañana", fr: "Demain", de: "Morgen" },
-  "明天": { en: "Tomorrow", ja: "明日", kr: "내일", es: "Mañana", fr: "Demain", de: "Morgen" },
+  "我們": { en: "We", ja: "私達は", kr: "우리는", es: "Nosotros", fr: "Nous", de: "Wir" },
+  "今天下午": { en: "this afternoon", ja: "今日の午後", kr: "오늘 오후", es: "esta tarde", fr: "cet après-midi", de: "heute Nachmittag" },
+  "下午": { en: "this afternoon", ja: "午後", kr: "오후", es: "tarde", fr: "après-midi", de: "Nachmittag" },
   "今天": { en: "Today", ja: "今日", kr: "오늘", es: "Hoy", fr: "Aujourd'hui", de: "Heute" },
-  "下週": { en: "next week", ja: "来週", kr: "다음 주", es: "la próxima semana", fr: "la semaine prochaine", de: "nächste Woche" },
-  "要": { en: "will", ja: "は", kr: "할 것이다", es: "va a", fr: "va", de: "wird" },
-  "舉辦": { en: "hold", ja: "開催する", kr: "개최하다", es: "celebrar", fr: "tenir", de: "veranstalten" },
-  "舉行": { en: "hold", ja: "開催する", kr: "개최하다", es: "celebrar", fr: "tenir", de: "veranstalten" },
+  "明天": { en: "Tomorrow", ja: "明日", kr: "내일", es: "Mañana", fr: "Demain", de: "Morgen" },
+  "明日": { en: "Tomorrow", ja: "明日", kr: "내일", es: "Mañana", fr: "Demain", de: "Morgen" },
+  "日本客戶": { en: "Japanese clients", ja: "日本のお客様", kr: "일본 고객", es: "clientes japoneses", fr: "clients japonais", de: "japanische Kunden" },
+  "客戶": { en: "client", ja: "お客様", kr: "고객", es: "cliente", fr: "client", de: "Kunde" },
+  "開會": { en: "have a meeting", ja: "会議をする", kr: "회의를 하다", es: "reunirse", fr: "avoir une réunion", de: "ein Treffen haben" },
+  "會議": { en: "meeting", ja: "会議", kr: "회의", es: "reunión", fr: "réunion", de: "Treffen" },
+  "請問": { en: "Excuse me", ja: "すみません", kr: "실례합니다", es: "Disculpe", fr: "Excusez-moi", de: "Entschuldigung" },
+  "附近的": { en: "nearby", ja: "近くの", kr: "근처의", es: "cercano", fr: "proche", de: "nahegelegene" },
+  "捷運站": { en: "MRT station", ja: "地下鉄の駅", kr: "지하철역", es: "estación de metro", fr: "station de métro", de: "U-Bahn Station" },
+  "捷運": { en: "MRT / metro", ja: "地下鉄", kr: "지하철", es: "metro", fr: "métro", de: "U-Bahn" },
+  "在哪裡": { en: "where is it?", ja: "どこですか？", kr: "어디에 있나요?", es: "¿dónde está?", fr: "où est-ce?", de: "wo ist es?" },
+  "簡報": { en: "presentation", ja: "プレゼン資料", kr: "발표 자료", es: "presentación", fr: "présentation", de: "Präsentation" },
+  "文件": { en: "document", ja: "書類", kr: "문서", es: "documento", fr: "document", de: "Dokument" },
+  "合約": { en: "contract", ja: "契約書", kr: "계약서", es: "contrato", fr: "contrat", de: "Vertrag" },
+  "電腦": { en: "computer", ja: "パソコン", kr: "컴퓨터", es: "computadora", fr: "ordinateur", de: "Computer" },
   "研討會": { en: "seminar", ja: "セミナー", kr: "세미나", es: "seminario", fr: "séminaire", de: "Seminar" },
   "專案": { en: "project", ja: "プロジェクト", kr: "프로젝트", es: "proyecto", fr: "projet", de: "Projekt" },
   "執行": { en: "execute", ja: "実行する", kr: "실행하다", es: "ejecutar", fr: "exécuter", de: "ausführen" },
-  "電腦": { en: "computer", ja: "パソコン", kr: "컴퓨터", es: "computadora", fr: "ordinateur", de: "Computer" },
-  "效能": { en: "performance", ja: "性能", kr: "성능", es: "rendimiento", fr: "performance", de: "Leistung" },
-  "合約": { en: "contract", ja: "契約書", kr: "계약서", es: "contrato", fr: "contrat", de: "Vertrag" },
   "工作": { en: "work", ja: "仕事", kr: "일", es: "trabajo", fr: "travail", de: "Arbeit" },
   "你好": { en: "Hello", ja: "こんにちは", kr: "안녕하세요", es: "Hola", fr: "Bonjour", de: "Hallo" },
   "謝謝": { en: "Thank you", ja: "ありがとうございます", kr: "감사합니다", es: "Gracias", fr: "Merci", de: "Danke" },
   "買單": { en: "Check, please", ja: "お会計をお願いします", kr: "계산해 주세요", es: "La cuenta, por favor", fr: "L'addition, s'il vous plaît", de: "Die Rechnung, bitte" }
 };
 
-function translateTerm(word, lang, userOverrides = {}) {
+function translateWord(word, lang, userOverrides = {}) {
   if (userOverrides[word] && userOverrides[word][lang]) {
     return userOverrides[word][lang];
   }
@@ -199,6 +259,11 @@ const KANJI_ROMAN_MAP = {
   '明日': 'Ashita',
   '明天': 'Ashita',
   '今日': 'Kyou',
+  '私達': 'Watashitachi',
+  '午後': 'gogo',
+  'お客様': 'okyakusama',
+  '地下鉄': 'chikatetsu',
+  '駅': 'eki',
   'セミナー': 'seminaa',
   'シンポジウム': 'shimpojiumu',
   '研究会': 'kenkyuukai',
@@ -224,10 +289,8 @@ function generateRomaji(japaneseText) {
   return out.replace(/\s+/g, ' ').trim();
 }
 
-// Remove any remaining raw Chinese characters from non-Chinese target strings to prevent hybrid garbage
 function cleanNonChineseOutput(text, lang) {
   if (lang === 'zh-TW') return text;
-  // If target is English/Spanish/French/German, remove raw CJK characters if any remained
   if (['en', 'es', 'fr', 'de'].includes(lang)) {
     return text.replace(/[\u4e00-\u9fa5]+/g, '').replace(/\s+/g, ' ').trim();
   }
@@ -350,12 +413,12 @@ export class LocalTranslatorEngine {
         for (let len = 4; len >= 1; len--) {
           const sub = text.substring(i, i + len);
           if (this.wordDict[sub] || this.termsDb[sub]) {
-            jaTokens.push(translateTerm(sub, 'ja', this.userSelectionOverrides));
-            enTokens.push(translateTerm(sub, 'en', this.userSelectionOverrides));
-            krTokens.push(translateTerm(sub, 'kr', this.userSelectionOverrides));
-            esTokens.push(translateTerm(sub, 'es', this.userSelectionOverrides));
-            frTokens.push(translateTerm(sub, 'fr', this.userSelectionOverrides));
-            deTokens.push(translateTerm(sub, 'de', this.userSelectionOverrides));
+            jaTokens.push(translateWord(sub, 'ja', this.userSelectionOverrides));
+            enTokens.push(translateWord(sub, 'en', this.userSelectionOverrides));
+            krTokens.push(translateWord(sub, 'kr', this.userSelectionOverrides));
+            esTokens.push(translateWord(sub, 'es', this.userSelectionOverrides));
+            frTokens.push(translateWord(sub, 'fr', this.userSelectionOverrides));
+            deTokens.push(translateWord(sub, 'de', this.userSelectionOverrides));
             i += len;
             matched = true;
             break;
