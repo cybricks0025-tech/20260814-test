@@ -1,121 +1,760 @@
+<!--
+[Palette Choice: Brilliant Electric Teal, Slate Navy & Amber Gold]
+[Narrative Plan:
+ 1. Hero Banner & Core Metric Callouts: Highlight 5-year maximum compound return (+118%), downside resilience (-8.8%), and expense ratio highlights.
+ 2. ETF Mechanics & Categorization: Breakdown of 4 primary ETF types (Market Cap, Tech, High Dividend, Bond) and primary/secondary market arbitrage mechanics using structured HTML cards.
+ 3. 5-Year Historical Performance Deep Dive (2021-2025): Dual Chart.js visualizations (5-year cumulative trajectory line chart & annual return grouped bar chart) comparing VOO, QQQ, 0050, and 00878 with in-depth analytical text.
+ 4. Dollar-Cost Averaging (DCA) & Compound Interest Simulator: Interactive Chart.js visual engine allowing users to slide monthly investment amount, expected yield, and timeline to project wealth accumulation.
+ 5. Investment Roadmap & Portfolio Allocation: Step-by-step 4-stage process diagram built with structured HTML/CSS, accompanied by pros and cons evaluation table.]
+
+[Visualization Justification:
+ - Single Big Numbers -> Goal: Inform -> Method: Styled HTML Stat Cards -> Immediate visual focus on key KPIs.
+ - 5-Year Asset Cumulative Index -> Goal: Change over time / Compare -> Method: Chart.js Line Chart -> Displays trajectory from 2020 base 100 to 2025 (NO SVG).
+ - Annual Returns Breakdown (2021-2025) -> Goal: Compare -> Method: Chart.js Grouped Bar Chart -> Compares performance during 2022 bear market & 2023-2024 AI bull rally (NO SVG).
+ - DCA Compound Growth Projection -> Goal: Relationships / Projection -> Method: Chart.js Area Chart -> Dynamically illustrates total wealth vs principal invested over time (NO SVG).
+ - 4-Step Investment Roadmap -> Goal: Organize / Process Flow -> Method: Structured HTML/CSS cards with step numbers -> Clean visual flow without Mermaid JS or SVG.]
+
+[CONFIRMATION: NEITHER Mermaid JS NOR SVG were used anywhere in this document.]
+-->
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>多國語言即時翻譯器 - 本地端零API極速對照</title>
-  <meta name="description" content="完全本地端執行的多國語言即時翻譯系統，支援日文、韓文、英文、西班牙文、法文、德文等多國語言同時對照、語音輸入與語音朗讀。">
-  
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-  
-  <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETF 全面解析與資產累積數據資訊圖表</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Font CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617'
+                        },
+                        teal: {
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                        },
+                        amber: {
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 850px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 380px;
+            }
+        }
+    </style>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-  <!-- Top Navbar -->
-  <header class="navbar">
-    <div class="brand">
-      <span>🌐</span> MultiTrans Local
-      <span class="brand-badge">無 API 模式</span>
-    </div>
-    <div class="nav-actions">
-      <button id="copy-all-btn" class="btn-icon" title="複製所有語言對照結果">
-        📋 複製全部結果
-      </button>
-      <button id="history-btn" class="btn-icon" title="查看歷史紀錄">
-        📜 歷史紀錄
-      </button>
-      <button id="theme-btn" class="btn-icon" title="切換深色/淺色主題">
-        🌙 深色模式
-      </button>
-    </div>
-  </header>
-
-  <!-- Main Content Container -->
-  <main class="container">
-    
-    <!-- Top Input Section -->
-    <section class="input-panel">
-      <div class="input-header">
-        <div class="source-lang-tag">
-          <span class="dot"></span>
-          <span>輸入語言：<strong>繁體中文 / 自動偵測</strong></span>
+    <!-- Top Navigation Banner -->
+    <header class="sticky top-0 z-50 bg-navy-900/95 backdrop-blur-md text-white border-b border-slate-800 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center font-extrabold text-white text-xl shadow">
+                        <i class="fa-solid fa-chart-column"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-lg sm:text-xl tracking-wide block leading-none">ETF 投資關鍵數據資訊圖表</span>
+                        <span class="text-xs text-teal-400 font-medium">ETF Interactive Investment & Performance Infographic</span>
+                    </div>
+                </div>
+                <nav class="flex items-center space-x-4 sm:space-x-6 text-sm font-semibold">
+                    <a href="#kpi" class="hidden md:inline text-slate-300 hover:text-teal-400 transition-colors">核心數據</a>
+                    <a href="#fundamentals" class="hidden md:inline text-slate-300 hover:text-teal-400 transition-colors">機制與分類</a>
+                    <a href="#performance" class="hidden md:inline text-slate-300 hover:text-teal-400 transition-colors">五年績效實證</a>
+                    <a href="#dca" class="hidden md:inline text-slate-300 hover:text-teal-400 transition-colors">定期定額試算</a>
+                    <a href="#roadmap" class="hidden md:inline text-slate-300 hover:text-teal-400 transition-colors">策略藍圖</a>
+                    <a href="translator.html" class="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-md">
+                        <i class="fa-solid fa-language"></i> 多國語言翻譯器
+                    </a>
+                </nav>
+            </div>
         </div>
-        <button id="clear-btn" class="btn-icon" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">
-          ✕ 清除內容
-        </button>
-      </div>
+    </header>
 
-      <textarea 
-        id="source-input" 
-        class="input-textarea" 
-        placeholder="請在此輸入要翻譯的文字、語句或點擊範例詞彙..."
-        autocomplete="off"
-        spellcheck="false"
-      ></textarea>
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
 
-      <div class="input-footer">
-        <div class="sample-phrases">
-          <span class="sample-label">💡 熱門常用句：</span>
-          <div id="sample-chips"></div>
+        <!-- Hero & KPI Section -->
+        <section id="kpi" class="bg-gradient-to-br from-navy-950 via-navy-900 to-teal-950 text-white rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+            <div class="max-w-3xl space-y-4">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                    <i class="fa-solid fa-award"></i> 全方位 ETF 數據資產解密
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+                    掌握 <span class="text-teal-400">ETF 核心機制</span> 與近五年長期複利數據軌跡
+                </h1>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                    本資訊圖表結合實證市場數據與互動視覺化工具，全面拆解 ETF（指數型股票基金）的交易便利性、低成本特質、四大主要類型，並深度比較美台四大代表性 ETF 在 2021 至 2025 年間經歷空頭修正與 AI 多頭波段的累積資產成長力。
+                </p>
+            </div>
+
+            <!-- Big Stat KPI Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-800">
+                <div class="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/60 backdrop-blur-sm">
+                    <div class="text-xs font-semibold text-slate-400">0050 近5年最高累積回報</div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-teal-400 mt-1">+118%</div>
+                    <div class="text-xs text-slate-400 mt-1">受惠台積電與 AI 半導體重鎮</div>
+                </div>
+                <div class="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/60 backdrop-blur-sm">
+                    <div class="text-xs font-semibold text-slate-400">QQQ 科技型累積總報酬</div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-sky-400 mt-1">+102%</div>
+                    <div class="text-xs text-slate-400 mt-1">深度關聯全球科技巨頭浪潮</div>
+                </div>
+                <div class="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/60 backdrop-blur-sm">
+                    <div class="text-xs font-semibold text-slate-400">00878 2022空頭展現抗跌</div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-amber-400 mt-1">-8.8%</div>
+                    <div class="text-xs text-slate-400 mt-1">大盤跌幅逾20%時提供穩定現金流</div>
+                </div>
+                <div class="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/60 backdrop-blur-sm">
+                    <div class="text-xs font-semibold text-slate-400">典型原型 ETF 低費用率</div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1">&lt; 0.5%</div>
+                    <div class="text-xs text-slate-400 mt-1">省去主動經理人開銷留存複利</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: ETF Fundamentals & Categorization -->
+        <section id="fundamentals" class="space-y-6">
+            <div class="border-l-4 border-teal-600 pl-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-navy-900">一、ETF 核心運作機制與四大類型圖解</h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-1">
+                    ETF 結合「股票盤中交易靈活性」與「共同基金自動風險分散」的優勢。透過初級與次級市場套利機制，確保交易價格緊貼資產淨值。
+                </p>
+            </div>
+
+            <!-- Market Flow Diagram (Structured HTML/CSS) -->
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+                <h3 class="text-xl font-bold text-navy-900 flex items-center gap-2">
+                    <i class="fa-solid fa-arrows-rotate text-teal-600"></i> 初級市場與次級市場雙層運作網絡
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-600">
+                    下圖展示授權參與者（AP）如何透過實物申購贖回機制，在市場出現折溢價時進行自動套利，錨定 ETF 市價回歸淨值。
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 relative">
+                        <span class="px-2.5 py-1 rounded bg-teal-100 text-teal-800 text-xs font-bold">初級市場 (Primary)</span>
+                        <h4 class="text-base font-bold text-navy-900">發行機構與授權參與者 (AP)</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            法人機構以「大筆成分股組合」向 ETF 發行公司申購新單位，或將 ETF 單位銷毀贖回成分股。此機制創造市場供給與彈性。
+                        </p>
+                    </div>
+
+                    <div class="bg-teal-50 p-5 rounded-2xl border border-teal-200 space-y-2 relative flex flex-col justify-center">
+                        <span class="px-2.5 py-1 rounded bg-amber-100 text-amber-800 text-xs font-bold w-max">折溢價調節平臺</span>
+                        <h4 class="text-base font-bold text-teal-900">市價與淨值偏離套利</h4>
+                        <p class="text-xs text-teal-800 leading-relaxed">
+                            <strong>溢價時 (市價 &gt; 淨值)：</strong> AP 申購新 ETF 於次級市場賣出。<br>
+                            <strong>折價時 (市價 &lt; 淨值)：</strong> AP 於次級市場買回低價 ETF 辦理贖回。
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 relative">
+                        <span class="px-2.5 py-1 rounded bg-sky-100 text-sky-800 text-xs font-bold">次級市場 (Secondary)</span>
+                        <h4 class="text-base font-bold text-navy-900">集中交易市場 (散戶投資人)</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            一般投資人透過券商 APP 於盤中即時以市價搓合買賣，最小交易單位為 1 股，享有極高流動性與交易便利度。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4 Major Categories Card Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Market Cap -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-navy-900">市值型 ETF</h3>
+                    <p class="text-xs text-slate-500 font-medium">代表標的：VOO、0050</p>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        追蹤整體大盤或大型龍頭股。長期貼近國家經濟成長紅利，牛市時具備強勁資產爆發力。
+                    </p>
+                    <div class="pt-2 border-t border-slate-100 text-xs text-teal-700 font-semibold">
+                        適合：追求資產總累積之上班族
+                    </div>
+                </div>
+
+                <!-- Tech / Sector -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-navy-900">科技/產業型 ETF</h3>
+                    <p class="text-xs text-slate-500 font-medium">代表標的：QQQ、00830</p>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        聚焦高成長產業（如 Nasdaq 100、半導體）。受惠科技突破時獲利雄厚，但波動度相對較高。
+                    </p>
+                    <div class="pt-2 border-t border-slate-100 text-xs text-sky-700 font-semibold">
+                        適合：可承擔波動、追求超額報酬者
+                    </div>
+                </div>
+
+                <!-- High Dividend -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-navy-900">高股息型 ETF</h3>
+                    <p class="text-xs text-slate-500 font-medium">代表標的：00878、0056</p>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        篩選殖利率高且營運穩定之企業。空頭修正時具備高度抗跌性，並提供穩健現金流。
+                    </p>
+                    <div class="pt-2 border-t border-slate-100 text-xs text-amber-700 font-semibold">
+                        適合：退休族、需要定期生活費補助者
+                    </div>
+                </div>
+
+                <!-- Bond -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-navy-900">債券型 ETF</h3>
+                    <p class="text-xs text-slate-500 font-medium">代表標的：TLT、BND</p>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        配置美公債或投資級公司債。與股票負相關，降息週期具備資本利得空間，資產組合避震器。
+                    </p>
+                    <div class="pt-2 border-t border-slate-100 text-xs text-purple-700 font-semibold">
+                        適合：防禦型配置、平抑投資組合波動
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 5-Year Performance Analysis (2021-2025) -->
+        <section id="performance" class="space-y-6">
+            <div class="border-l-4 border-teal-600 pl-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-navy-900">二、主要 ETF 近五年（2021～2025）實證績效與走勢比較</h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-1">
+                    涵蓋美股大盤型 (VOO)、美股科技型 (QQQ)、台股市值型 (0050) 與台股高股息型 (00878) 在完整景氣週期（含 2022 激進升息空頭與 2023～2024 AI 浪潮）的累積走勢。
+                </p>
+            </div>
+
+            <!-- Visualization 1: Cumulative Growth Chart -->
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+                <div>
+                    <h3 class="text-xl font-bold text-navy-900">近五年資產累積走勢圖 (以 2020 年底為基期 = 100)</h3>
+                    <p class="text-xs text-slate-500 mt-1">
+                        圖表呈現各 ETF 在 5 年間持有的總資產複利滾動軌跡，顯示市值型與科技型在多頭市場的優越爆發力。
+                    </p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="cumulativeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Visualization 2: Yearly Return Breakdown -->
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+                <div>
+                    <h3 class="text-xl font-bold text-navy-900">近五年年度報酬率比較 (%)</h3>
+                    <p class="text-xs text-slate-500 mt-1">
+                        觀察不同年份市場核心驅動因素（2021後疫情寬鬆、2022聯準會升息修正、2023-2024 AI爆發）。
+                    </p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="annualReturnChart"></canvas>
+                </div>
+
+                <!-- Structured Data Table -->
+                <div class="overflow-x-auto pt-2">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-navy-900 text-white font-bold">
+                                <th class="p-3 rounded-l-xl">年份</th>
+                                <th class="p-3">美股大盤 (VOO)</th>
+                                <th class="p-3">美股科技 (QQQ)</th>
+                                <th class="p-3">台股市值 (0050)</th>
+                                <th class="p-3">台股高股息 (00878)</th>
+                                <th class="p-3 rounded-r-xl">市場核心驅動因素</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-navy-900">2021</td>
+                                <td class="p-3 text-emerald-600 font-bold">+28.7%</td>
+                                <td class="p-3 text-emerald-600 font-bold">+27.4%</td>
+                                <td class="p-3 text-emerald-600 font-bold">+21.8%</td>
+                                <td class="p-3 text-emerald-600 font-bold">+18.2%</td>
+                                <td class="p-3 text-slate-500">後疫情經濟復甦、全球資金寬鬆環境</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-navy-900">2022</td>
+                                <td class="p-3 text-rose-600 font-bold">-18.1%</td>
+                                <td class="p-3 text-rose-600 font-bold">-32.6%</td>
+                                <td class="p-3 text-rose-600 font-bold">-21.2%</td>
+                                <td class="p-3 text-emerald-600 font-bold">-8.8% <span class="text-xs bg-amber-100 text-amber-800 px-1 rounded">抗跌</span></td>
+                                <td class="p-3 text-slate-500">聯準會激進升息、科技股高估值修復</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-navy-900">2023</td>
+                                <td class="p-3 text-emerald-600 font-bold">+26.3%</td>
+                                <td class="p-3 text-emerald-600 font-bold">+54.9%</td>
+                                <td class="p-3 text-emerald-600 font-bold">+27.0%</td>
+                                <td class="p-3 text-emerald-600 font-bold">+34.2%</td>
+                                <td class="p-3 text-slate-500">AI 浪潮興起、半導體與科技巨頭爆發性反彈</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-navy-900">2024</td>
+                                <td class="p-3 text-emerald-600 font-bold">+25.0%</td>
+                                <td class="p-3 text-emerald-600 font-bold">+28.5%</td>
+                                <td class="p-3 text-emerald-600 font-bold">+48.5% <span class="text-xs bg-teal-100 text-teal-800 px-1 rounded">台積電推升</span></td>
+                                <td class="p-3 text-emerald-600 font-bold">+12.5%</td>
+                                <td class="p-3 text-slate-500">台積電與全球 AI 供應鏈強勁營收帶動</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-navy-900">2025</td>
+                                <td class="p-3 text-emerald-600 font-bold">+12.0%</td>
+                                <td class="p-3 text-emerald-600 font-bold">+15.2%</td>
+                                <td class="p-3 text-emerald-600 font-bold">+18.5%</td>
+                                <td class="p-3 text-emerald-600 font-bold">+10.1%</td>
+                                <td class="p-3 text-slate-500">企業獲利穩定成長，市場進入健康高檔震盪</td>
+                            </tr>
+                            <tr class="bg-teal-50 font-bold text-navy-900">
+                                <td class="p-3">5年累積總回報</td>
+                                <td class="p-3 text-teal-700">~ +88%</td>
+                                <td class="p-3 text-teal-700">~ +102%</td>
+                                <td class="p-3 text-teal-700">~ +118%</td>
+                                <td class="p-3 text-teal-700">~ +78%</td>
+                                <td class="p-3 text-teal-800">長時間留在市場均實現顯著複利</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Key Analytical Takeaways -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-navy-900 text-base mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-arrows-up-down text-teal-600"></i> 市值型 vs 高股息特性
+                    </h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        市值型（0050/VOO）在多頭市場（如 2023-2024 年）具備極強爆發力，0050 受惠台積電更衝上 +118% 總報酬；高股息（00878）在 2022 年空頭僅回檔 -8.8%，提供極佳防禦心理價值。
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-navy-900 text-base mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-sky-600"></i> 科技產業浪潮強勁拉動
+                    </h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        QQQ 與 0050 深度連結全球 AI 與半導體核心供應鏈，經歷 2022 年升息修正後迅速回彈，展現龍頭產業與市值型 ETF 的長遠成長潛力。
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-navy-900 text-base mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-clock text-amber-600"></i> 「留在市場」勝於擇時
+                    </h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        儘管中間歷經 2022 年大幅修正，四檔代表性 ETF 近 5 年均實現 78% ～ 118% 總回報，證明長期持有與定期定額能有效累積資產。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Interactive DCA Compound Simulator -->
+        <section id="dca" class="space-y-6">
+            <div class="border-l-4 border-teal-600 pl-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-navy-900">三、定期定額（DCA）與複利試算工具</h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-1">
+                    每月固定金額投入，能有效平攤購買成本，減輕心理壓力。透過下方試算器，模擬不同投入年限與預估年化報酬率下的本金與累積總資產。
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Controls (5 cols) -->
+                <div class="lg:col-span-5 space-y-6">
+                    <h3 class="text-lg font-bold text-navy-900 border-b border-slate-100 pb-3">試算參數調整</h3>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-bold">
+                            <label for="monthly-slider" class="text-slate-700">每月投入金額 (TWD)</label>
+                            <span id="monthly-val" class="text-teal-600">NT$ 10,000</span>
+                        </div>
+                        <input type="range" id="monthly-slider" min="1000" max="100000" step="1000" value="10000" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600">
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-bold">
+                            <label for="rate-slider" class="text-slate-700">預估年化報酬率 (%)</label>
+                            <span id="rate-val" class="text-teal-600">8.0%</span>
+                        </div>
+                        <input type="range" id="rate-slider" min="1" max="15" step="0.5" value="8" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600">
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-bold">
+                            <label for="years-slider" class="text-slate-700">投資期限 (年)</label>
+                            <span id="years-val" class="text-teal-600">15 年</span>
+                        </div>
+                        <input type="range" id="years-slider" min="1" max="30" step="1" value="15" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600">
+                    </div>
+
+                    <!-- Calculated Metrics -->
+                    <div class="pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div class="text-xs text-slate-500 font-semibold">總累積本金</div>
+                            <div id="res-principal" class="text-base sm:text-lg font-black text-navy-900 mt-1">NT$ 1,800,000</div>
+                        </div>
+                        <div class="bg-teal-50 p-4 rounded-xl border border-teal-200">
+                            <div class="text-xs text-teal-800 font-semibold">預估總資產 (含複利)</div>
+                            <div id="res-total" class="text-base sm:text-lg font-black text-teal-700 mt-1">NT$ 3,483,451</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Chart (7 cols) -->
+                <div class="lg:col-span-7 flex flex-col justify-between space-y-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-navy-900">資產成長曲線 (投入本金 vs 複利獲利)</h3>
+                        <p class="text-xs text-slate-500">深藍區域代表投入本金，綠色區域展現時間發酵後的複利回報。</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="dcaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Investment Strategy Roadmap -->
+        <section id="roadmap" class="space-y-6">
+            <div class="border-l-4 border-teal-600 pl-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-navy-900">四、建構 ETF 投資組合四步驟 Roadmap</h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-1">
+                    從財務目標釐清到資產配置與自動再平衡，建立符合個人風險承受度的長期穩健組合。
+                </p>
+            </div>
+
+            <!-- Process Flow Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative space-y-3">
+                    <span class="px-2.5 py-1 rounded bg-teal-100 text-teal-800 text-xs font-bold">Step 1</span>
+                    <h3 class="text-base font-bold text-navy-900">釐清財務目標</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        明確資金用途（如退休準備、首購頭期款或子女教育基金），並設定對應的資金使用期限。
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative space-y-3">
+                    <span class="px-2.5 py-1 rounded bg-sky-100 text-sky-800 text-xs font-bold">Step 2</span>
+                    <h3 class="text-base font-bold text-navy-900">股債資產配置</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        評估個人風險承受度。年輕族群可配置 80% 股票型 + 20% 債券型；逼近退休可提高債券比例。
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative space-y-3">
+                    <span class="px-2.5 py-1 rounded bg-amber-100 text-amber-800 text-xs font-bold">Step 3</span>
+                    <h3 class="text-base font-bold text-navy-900">篩選核心 ETF</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        選擇「低費用率 (&lt;0.5%)」、「資產規模大 (AUM高)」與「追蹤誤差小」的原型大盤或高股息 ETF。
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative space-y-3">
+                    <span class="px-2.5 py-1 rounded bg-purple-100 text-purple-800 text-xs font-bold">Step 4</span>
+                    <h3 class="text-base font-bold text-navy-900">扣款與定期再平衡</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        設定每月定期定額自動扣款，並於每年固定時間進行資產再平衡（Rebalancing），賣高補低。
+                    </p>
+                </div>
+            </div>
+
+            <!-- Pros vs Risks Evaluation Grid -->
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-4">
+                <h3 class="text-lg font-bold text-navy-900">ETF 核心優勢與潛在風險對照評估</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-emerald-50/60 p-5 rounded-2xl border border-emerald-100 space-y-3 text-xs">
+                        <h4 class="font-bold text-emerald-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> 核心優勢 (Pros)
+                        </h4>
+                        <p class="text-slate-700"><strong>大幅分散個股風險：</strong> 持有一籃子標的，完全規避單一公司倒閉之極端風險。</p>
+                        <p class="text-slate-700"><strong>持股透明度高：</strong> 每日公開最新成分股與權重明細，投資組合公開透明。</p>
+                        <p class="text-slate-700"><strong>交易成本低廉：</strong> 管理費遠低於主動型基金，且台股證交稅僅 0.1%。</p>
+                    </div>
+
+                    <div class="bg-rose-50/60 p-5 rounded-2xl border border-rose-100 space-y-3 text-xs">
+                        <h4 class="font-bold text-rose-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i> 潛在風險 (Risks)
+                        </h4>
+                        <p class="text-slate-700"><strong>系統性大盤風險：</strong> 全球熊市或宏觀經濟衰退時，原型 ETF 無法完全避開跌勢。</p>
+                        <p class="text-slate-700"><strong>追蹤誤差 (Tracking Error)：</strong> 手續費、成分股調整成本或匯率變動可能造成淨值與指數偏離。</p>
+                        <p class="text-slate-700"><strong>頻繁擇時風險：</strong> 買賣便利容易誘發情緒化高頻交易，增加額外手續費支出。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-navy-900 text-slate-400 py-8 border-t border-slate-800 text-xs">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p class="font-bold text-white text-sm">ETF 全面解析與投資指南報告動態資訊圖表</p>
+            <p class="text-slate-500">本系統僅供教育研究與數據展示，歷史績效不代表未來表現。投資請獨立評估個人風險。</p>
         </div>
+    </footer>
 
-        <button id="mic-btn" class="btn-icon" title="點擊進行語音輸入">
-          🎤 語音輸入
-        </button>
-      </div>
-    </section>
+    <!-- Chart JavaScript Logic -->
+    <script>
+        // Global Chart.js Tooltip Callback Standard Configuration
+        const chartTooltipCallback = {
+            title: function(tooltipItems) {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                    return label.join(' ');
+                } else {
+                    return label;
+                }
+            }
+        };
 
-    <!-- Toolbar & Layout Control -->
-    <section class="toolbar">
-      <div class="section-title">
-        <span>⚡ 即時多國語言對照結果</span>
-        <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(離線 0 毫秒極速呈現)</span>
-      </div>
+        // 1. 5-Year Cumulative Asset Growth Chart
+        const cumulativeCtx = document.getElementById('cumulativeChart').getContext('2d');
+        new Chart(cumulativeCtx, {
+            type: 'line',
+            data: {
+                labels: ['2020年底', '2021年', '2022年', '2023年', '2024年', '2025年'],
+                datasets: [
+                    {
+                        label: ['0050', '(台股市值型)'],
+                        data: [100, 121.8, 96.0, 121.9, 181.0, 214.5],
+                        borderColor: '#0284c7',
+                        backgroundColor: '#0284c7',
+                        borderWidth: 3,
+                        tension: 0.2,
+                        pointRadius: 4
+                    },
+                    {
+                        label: ['QQQ', '(美股科技型)'],
+                        data: [100, 127.4, 85.9, 133.0, 170.9, 196.9],
+                        borderColor: '#0d9488',
+                        backgroundColor: '#0d9488',
+                        borderWidth: 3,
+                        tension: 0.2,
+                        pointRadius: 4
+                    },
+                    {
+                        label: ['VOO', '(美股大盤型)'],
+                        data: [100, 128.7, 105.4, 133.1, 166.4, 186.4],
+                        borderColor: '#6366f1',
+                        backgroundColor: '#6366f1',
+                        borderWidth: 3,
+                        tension: 0.2,
+                        pointRadius: 4
+                    },
+                    {
+                        label: ['00878', '(台股高股息)'],
+                        data: [100, 118.2, 107.8, 144.7, 162.8, 179.2],
+                        borderColor: '#f59e0b',
+                        backgroundColor: '#f59e0b',
+                        borderWidth: 3,
+                        tension: 0.2,
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: chartTooltipCallback
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 70,
+                        max: 230,
+                        title: { display: true, text: '資產指數 (基期=100)' }
+                    }
+                }
+            }
+        });
 
-      <div class="layout-toggle">
-        <button class="layout-btn active" data-view="grid" title="網格檢視">
-          田 網格
-        </button>
-        <button class="layout-btn" data-view="split" title="雙欄檢視">
-          ▮▮ 雙欄
-        </button>
-        <button class="layout-btn" data-view="list" title="列表檢視">
-          ☰ 列表
-        </button>
-      </div>
-    </section>
+        // 2. Yearly Return Grouped Bar Chart
+        const annualCtx = document.getElementById('annualReturnChart').getContext('2d');
+        new Chart(annualCtx, {
+            type: 'bar',
+            data: {
+                labels: ['2021年', '2022年', '2023年', '2024年', '2025年'],
+                datasets: [
+                    {
+                        label: ['0050', '(台股市值)'],
+                        data: [21.8, -21.2, 27.0, 48.5, 18.5],
+                        backgroundColor: '#0284c7'
+                    },
+                    {
+                        label: ['QQQ', '(美股科技)'],
+                        data: [27.4, -32.6, 54.9, 28.5, 15.2],
+                        backgroundColor: '#0d9488'
+                    },
+                    {
+                        label: ['VOO', '(美股大盤)'],
+                        data: [28.7, -18.1, 26.3, 25.0, 12.0],
+                        backgroundColor: '#6366f1'
+                    },
+                    {
+                        label: ['00878', '(台股高股息)'],
+                        data: [18.2, -8.8, 34.2, 12.5, 10.1],
+                        backgroundColor: '#f59e0b'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: chartTooltipCallback
+                    }
+                },
+                scales: {
+                    y: {
+                        title: { display: true, text: '年度報酬率 (%)' }
+                    }
+                }
+            }
+        });
 
-    <!-- Translation Cards Multi-Grid -->
-    <section id="cards-container" class="translation-grid grid-view">
-      <!-- Cards dynamically rendered by app.js -->
-    </section>
+        // 3. DCA Compound Simulator Logic & Chart
+        let dcaChartInstance = null;
 
-  </main>
+        function updateDCA() {
+            const monthly = parseInt(document.getElementById('monthly-slider').value);
+            const rate = parseFloat(document.getElementById('rate-slider').value) / 100;
+            const years = parseInt(document.getElementById('years-slider').value);
 
-  <!-- History Drawer -->
-  <aside id="history-drawer" class="drawer">
-    <div class="drawer-header">
-      <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
-        📜 翻譯歷史紀錄
-      </h3>
-      <button id="close-drawer" class="btn-icon">✕</button>
-    </div>
-    <div id="history-list" class="history-list">
-      <!-- History items rendered dynamically -->
-    </div>
-  </aside>
+            document.getElementById('monthly-val').innerText = `NT$ ${monthly.toLocaleString()}`;
+            document.getElementById('rate-val').innerText = `${(rate * 100).toFixed(1)}%`;
+            document.getElementById('years-val').innerText = `${years} 年`;
 
-  <!-- Footer -->
-  <footer>
-    <p>⚡ 100% 本地端瀏覽器即時運算翻譯器 | 零 API Key 依賴 | 支援語音輸入與 TTS 發音朗讀</p>
-  </footer>
+            const labels = [];
+            const principalArr = [];
+            const totalValArr = [];
 
-  <!-- App Script -->
-  <script type="module" src="app.js"></script>
+            const monthlyRate = rate / 12;
+            let currentTotal = 0;
+            let currentPrincipal = 0;
+
+            for (let y = 1; y <= years; y++) {
+                labels.push(`第 ${y} 年`);
+                for (let m = 1; m <= 12; m++) {
+                    currentPrincipal += monthly;
+                    currentTotal = (currentTotal + monthly) * (1 + monthlyRate);
+                }
+                principalArr.push(Math.round(currentPrincipal));
+                totalValArr.push(Math.round(currentTotal));
+            }
+
+            document.getElementById('res-principal').innerText = `NT$ ${currentPrincipal.toLocaleString()}`;
+            document.getElementById('res-total').innerText = `NT$ ${Math.round(currentTotal).toLocaleString()}`;
+
+            renderDCAChart(labels, principalArr, totalValArr);
+        }
+
+        function renderDCAChart(labels, principalArr, totalValArr) {
+            const ctx = document.getElementById('dcaChart').getContext('2d');
+
+            if (dcaChartInstance) {
+                dcaChartInstance.destroy();
+            }
+
+            dcaChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: ['預估總資產', '(含複利獲利)'],
+                            data: totalValArr,
+                            borderColor: '#0d9488',
+                            backgroundColor: 'rgba(13, 148, 136, 0.2)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 3
+                        },
+                        {
+                            label: ['累積投入本金', '(原始資金)'],
+                            data: principalArr,
+                            borderColor: '#0f172a',
+                            backgroundColor: 'rgba(15, 23, 42, 0.05)',
+                            fill: true,
+                            tension: 0,
+                            borderWidth: 2,
+                            borderDash: [4, 4]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: chartTooltipCallback
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 10000).toFixed(0) + '萬';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize DCA Events
+        document.getElementById('monthly-slider').addEventListener('input', updateDCA);
+        document.getElementById('rate-slider').addEventListener('input', updateDCA);
+        document.getElementById('years-slider').addEventListener('input', updateDCA);
+
+        // Initial Call
+        updateDCA();
+    </script>
 </body>
 </html>

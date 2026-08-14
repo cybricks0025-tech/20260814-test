@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>多國語言即時翻譯器 - 本地端零API極速對照</title>
+  <meta name="description" content="完全本地端執行的多國語言即時翻譯系統，支援日文、韓文、英文、西班牙文、法文、德文等多國語言同時對照、語音輸入與語音朗讀。">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="brand">
+      <span>🌐</span> MultiTrans Local
+      <span class="brand-badge">無 API 模式</span>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html" class="btn-icon" style="text-decoration: none;" title="返回 ETF 全面解析網頁">
+        📊 ETF 分析網頁
+      </a>
+      <button id="copy-all-btn" class="btn-icon" title="複製所有語言對照結果">
+        📋 複製全部結果
+      </button>
+      <button id="history-btn" class="btn-icon" title="查看歷史紀錄">
+        📜 歷史紀錄
+      </button>
+      <button id="theme-btn" class="btn-icon" title="切換深色/淺色主題">
+        🌙 深色模式
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="container">
+    
+    <!-- Top Input Section -->
+    <section class="input-panel">
+      <div class="input-header">
+        <div class="source-lang-tag">
+          <span class="dot"></span>
+          <span>輸入語言：<strong>繁體中文 / 自動偵測</strong></span>
+        </div>
+        <button id="clear-btn" class="btn-icon" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">
+          ✕ 清除內容
+        </button>
+      </div>
+
+      <textarea 
+        id="source-input" 
+        class="input-textarea" 
+        placeholder="請在此輸入要翻譯的文字、語句或點擊範例詞彙..."
+        autocomplete="off"
+        spellcheck="false"
+      ></textarea>
+
+      <div class="input-footer">
+        <div class="sample-phrases">
+          <span class="sample-label">💡 熱門常用句：</span>
+          <div id="sample-chips"></div>
+        </div>
+
+        <button id="mic-btn" class="btn-icon" title="點擊進行語音輸入">
+          🎤 語音輸入
+        </button>
+      </div>
+    </section>
+
+    <!-- Toolbar & Layout Control -->
+    <section class="toolbar">
+      <div class="section-title">
+        <span>⚡ 即時多國語言對照結果</span>
+        <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(離線 0 毫秒極速呈現)</span>
+      </div>
+
+      <div class="layout-toggle">
+        <button class="layout-btn active" data-view="grid" title="網格檢視">
+          田 網格
+        </button>
+        <button class="layout-btn" data-view="split" title="雙欄檢視">
+          ▮▮ 雙欄
+        </button>
+        <button class="layout-btn" data-view="list" title="列表檢視">
+          ☰ 列表
+        </button>
+      </div>
+    </section>
+
+    <!-- Translation Cards Multi-Grid -->
+    <section id="cards-container" class="translation-grid grid-view">
+      <!-- Cards dynamically rendered by app.js -->
+    </section>
+
+  </main>
+
+  <!-- History Drawer -->
+  <aside id="history-drawer" class="drawer">
+    <div class="drawer-header">
+      <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+        📜 翻譯歷史紀錄
+      </h3>
+      <button id="close-drawer" class="btn-icon">✕</button>
+    </div>
+    <div id="history-list" class="history-list">
+      <!-- History items rendered dynamically -->
+    </div>
+  </aside>
+
+  <!-- Footer -->
+  <footer>
+    <p>⚡ 100% 本地端瀏覽器即時運算翻譯器 | 零 API Key 依賴 | 支援語音輸入與 TTS 發音朗讀 | <a href="index.html" style="color: #818cf8; text-decoration: underline;">返回 ETF 解析網頁</a></p>
+  </footer>
+
+  <!-- App Script -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
