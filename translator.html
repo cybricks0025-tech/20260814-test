@@ -48,9 +48,18 @@
           <span class="dot"></span>
           <span>輸入語言：<strong>繁體中文 / 自動偵測</strong></span>
         </div>
-        <button id="clear-btn" class="btn-icon" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">
-          ✕ 清除內容
-        </button>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <label style="font-size: 0.8rem; color: var(--text-muted);">🎯 翻譯場合：</label>
+          <select id="tone-select" style="background: rgba(15, 23, 42, 0.8); color: var(--text-main); border: 1px solid var(--card-border); padding: 0.25rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.85rem; outline: none; cursor: pointer;">
+            <option value="business">🏢 正式商務 (Business Formal)</option>
+            <option value="casual">🗣️ 日常口語 (Casual)</option>
+            <option value="tech">💻 技術工程 (Tech / Engineering)</option>
+            <option value="legal">📜 法律合約 (Legal)</option>
+          </select>
+          <button id="clear-btn" class="btn-icon" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">
+            ✕ 清除內容
+          </button>
+        </div>
       </div>
 
       <textarea 

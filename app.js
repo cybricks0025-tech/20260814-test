@@ -34,6 +34,7 @@ class TranslatorApp {
     this.sampleChipsContainer = document.getElementById('sample-chips');
     this.interactiveSection = document.getElementById('interactive-terms-section');
     this.interactiveContainer = document.getElementById('interactive-terms-container');
+    this.toneSelect = document.getElementById('tone-select');
   }
 
   bindEvents() {
@@ -51,6 +52,15 @@ class TranslatorApp {
       this.handleTranslate();
       this.inputElement.focus();
     });
+
+    // Tone / Formality selector change
+    if (this.toneSelect) {
+      this.toneSelect.addEventListener('change', (e) => {
+        this.engine.setTone(e.target.value);
+        this.handleTranslate();
+        this.showToast(`已切換翻譯場合至：${e.target.options[e.target.selectedIndex].text}`);
+      });
+    }
 
     // Speech Microphone Input
     this.micBtn.addEventListener('click', () => {
@@ -148,47 +158,56 @@ class TranslatorApp {
       const orig = item.originalWord;
       const jaCandidates = item.candidates.ja || [];
       const enCandidates = item.candidates.en || [];
-      const selectedJa = item.selected.ja || (jaCandidates[0] ? jaCandidates[0].term : '');
-      const selectedEn = item.selected.en || (enCandidates[0] ? enCandidates[0].term : '');
+      const selectedJa = item.selected.ja || (jaCandidates[0] ? jaCandidates[0].raw : '');
+      const selectedEn = item.selected.en || (enCandidates[0] ? enCandidates[0].raw : '');
 
       return `
-        <div class="interactive-term-card" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 0.75rem 1rem; width: 100%;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <div class="interactive-term-card" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 0.85rem 1.1rem; width: 100%; margin-bottom: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
             <div style="font-weight: 700; font-size: 1rem; color: #818cf8; display: flex; align-items: center; gap: 0.5rem;">
-              <span>📌 關鍵詞彙：<strong style="color: #f8fafc; font-size: 1.1rem;">${orig}</strong></span>
+              <span>📌 關鍵字詞：<strong style="color: #f8fafc; font-size: 1.1rem; text-decoration: underline var(--accent-ja);">${orig}</strong></span>
               <span class="brand-badge">${item.category}</span>
             </div>
+            <button class="custom-term-btn btn-icon" data-orig="${orig}" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.5);">
+              ✏️ 自訂對照譯詞
+            </button>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">
             <!-- Japanese Candidates Choice -->
-            <div style="background: rgba(236, 72, 153, 0.08); border: 1px solid rgba(236, 72, 153, 0.2); border-radius: var(--radius-sm); padding: 0.6rem;">
-              <div style="font-size: 0.8rem; color: var(--accent-ja); font-weight: 600; margin-bottom: 0.4rem;">🇯🇵 日文譯詞與近義詞解說：</div>
+            <div style="background: rgba(236, 72, 153, 0.08); border: 1px solid rgba(236, 72, 153, 0.2); border-radius: var(--radius-sm); padding: 0.65rem;">
+              <div style="font-size: 0.8rem; color: var(--accent-ja); font-weight: 600; margin-bottom: 0.4rem; display: flex; justify-content: space-between;">
+                <span>🇯🇵 日文譯詞選單 (點擊切換)：</span>
+                <span style="color: var(--text-muted); font-weight: normal;">當前：${selectedJa || '預設'}</span>
+              </div>
               ${jaCandidates.map(c => `
-                <div class="candidate-option ${selectedJa === c.term ? 'selected' : ''}" 
-                     data-orig="${orig}" data-lang="ja" data-term="${this.escapeHTML(c.term)}"
-                     style="padding: 0.4rem 0.6rem; border-radius: 6px; margin-bottom: 0.3rem; cursor: pointer; background: ${selectedJa === c.term ? 'rgba(236, 72, 153, 0.25)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${selectedJa === c.term ? 'var(--accent-ja)' : 'transparent'}; transition: all 0.2s;">
+                <div class="candidate-option ${selectedJa === c.raw ? 'selected' : ''}" 
+                     data-orig="${orig}" data-lang="ja" data-term="${this.escapeHTML(c.raw)}"
+                     style="padding: 0.45rem 0.65rem; border-radius: 6px; margin-bottom: 0.35rem; cursor: pointer; background: ${selectedJa === c.raw ? 'rgba(236, 72, 153, 0.25)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${selectedJa === c.raw ? 'var(--accent-ja)' : 'transparent'}; transition: all 0.2s;">
                   <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-weight: 600; font-size: 0.9rem; color: #f8fafc;">${c.term}</span>
-                    <span style="font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 0.1rem 0.4rem; border-radius: 10px; color: #f472b6;">${c.domain}</span>
+                    <span style="font-size: 0.75rem; background: rgba(236, 72, 153, 0.2); padding: 0.1rem 0.5rem; border-radius: 10px; color: #f472b6; font-weight: 500;">${c.domain}</span>
                   </div>
-                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">💡 ${c.explanation}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.4;">💡 ${c.explanation}</div>
                 </div>
               `).join('')}
             </div>
 
             <!-- English Candidates Choice -->
-            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-sm); padding: 0.6rem;">
-              <div style="font-size: 0.8rem; color: var(--accent-en); font-weight: 600; margin-bottom: 0.4rem;">🇺🇸 英文譯詞與近義詞解說：</div>
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-sm); padding: 0.65rem;">
+              <div style="font-size: 0.8rem; color: var(--accent-en); font-weight: 600; margin-bottom: 0.4rem; display: flex; justify-content: space-between;">
+                <span>🇺🇸 英文譯詞選單 (點擊切換)：</span>
+                <span style="color: var(--text-muted); font-weight: normal;">當前：${selectedEn || '預設'}</span>
+              </div>
               ${enCandidates.map(c => `
-                <div class="candidate-option ${selectedEn === c.term ? 'selected' : ''}" 
-                     data-orig="${orig}" data-lang="en" data-term="${this.escapeHTML(c.term)}"
-                     style="padding: 0.4rem 0.6rem; border-radius: 6px; margin-bottom: 0.3rem; cursor: pointer; background: ${selectedEn === c.term ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${selectedEn === c.term ? 'var(--accent-en)' : 'transparent'}; transition: all 0.2s;">
+                <div class="candidate-option ${selectedEn === c.raw ? 'selected' : ''}" 
+                     data-orig="${orig}" data-lang="en" data-term="${this.escapeHTML(c.raw)}"
+                     style="padding: 0.45rem 0.65rem; border-radius: 6px; margin-bottom: 0.35rem; cursor: pointer; background: ${selectedEn === c.raw ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${selectedEn === c.raw ? 'var(--accent-en)' : 'transparent'}; transition: all 0.2s;">
                   <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-weight: 600; font-size: 0.9rem; color: #f8fafc;">${c.term}</span>
-                    <span style="font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 0.1rem 0.4rem; border-radius: 10px; color: #34d399;">${c.domain}</span>
+                    <span style="font-size: 0.75rem; background: rgba(16, 185, 129, 0.2); padding: 0.1rem 0.5rem; border-radius: 10px; color: #34d399; font-weight: 500;">${c.domain}</span>
                   </div>
-                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">💡 ${c.explanation}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.4;">💡 ${c.explanation}</div>
                 </div>
               `).join('')}
             </div>
@@ -197,7 +216,7 @@ class TranslatorApp {
       `;
     }).join('');
 
-    // Attach click events for selecting term options
+    // Candidate option click handlers
     this.interactiveContainer.querySelectorAll('.candidate-option').forEach(opt => {
       opt.addEventListener('click', () => {
         const orig = opt.dataset.orig;
@@ -205,7 +224,21 @@ class TranslatorApp {
         const term = opt.dataset.term;
         this.engine.setTermOverride(orig, lang, term);
         this.handleTranslate();
-        this.showToast(`已套用「${orig}」在 ${lang === 'ja' ? '日文' : '英文'} 的選詞：${term}`);
+        this.showToast(`已切換「${orig}」的 ${lang === 'ja' ? '日文' : '英文'} 譯詞為：${term}`);
+      });
+    });
+
+    // Custom term input handler
+    this.interactiveContainer.querySelectorAll('.custom-term-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const orig = btn.dataset.orig;
+        const lang = prompt(`請輸入「${orig}」自訂的目標譯詞（例如日文或英文對照）：`);
+        if (lang) {
+          this.engine.setTermOverride(orig, 'ja', lang);
+          this.engine.setTermOverride(orig, 'en', lang);
+          this.handleTranslate();
+          this.showToast(`已將「${orig}」之自訂譯詞設定為：${lang}`);
+        }
       });
     });
   }
@@ -271,7 +304,7 @@ class TranslatorApp {
   }
 
   renderSampleChips() {
-    const samples = ["這份專案我們下週開始執行", "你好", "謝謝", "工作", "買單", "我喜歡程式設計與語言學習"];
+    const samples = ["這份專案我們下週開始執行", "明天要舉辦研討會", "這台電腦效能很好", "請協助確認這份合約", "工作", "買單", "你好"];
     this.sampleChipsContainer.innerHTML = samples.map(s => `<div class="chip" data-phrase="${s}">${s}</div>`).join('');
 
     this.sampleChipsContainer.querySelectorAll('.chip').forEach(chip => {
