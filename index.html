@@ -1037,12 +1037,23 @@
         function handleFormSubmit(e) {
             e.preventDefault();
 
-            const name = document.getElementById('custName').value;
-            const email = document.getElementById('custEmail').value;
-            const phone = document.getElementById('custPhone').value;
-            const company = document.getElementById('custCompany').value;
+            const name = document.getElementById('custName').value.trim();
+            const email = document.getElementById('custEmail').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            const company = document.getElementById('custCompany').value.trim();
             const diet = document.getElementById('custDiet').value;
             const shirt = document.getElementById('custShirt').value;
+
+            // 驗證是否同活動重複報名 (姓名不可重複)
+            const isDuplicate = registrations.some(r => 
+                r.eventId === selectedEvent.id && 
+                r.name.trim().toLowerCase() === name.toLowerCase()
+            );
+
+            if (isDuplicate) {
+                showToast(`🚫 報名失敗：姓名「${name}」已重複報名！`, 'info');
+                return;
+            }
 
             const finalPrice = Math.round(selectedTicketType.price * ticketQuantity * discountRate);
             const ticketCode = 'EP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
